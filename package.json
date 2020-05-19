@@ -1,0 +1,46 @@
+{
+  "name": "beadloom",
+  "version": "0.0.0",
+  "description": "Beads",
+  "keywords": [],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@stayknit.ca:beadloom.git"
+  },
+  "author": "Gen Hames",
+  "main": "src/index.tsx",
+  "scripts": {
+    "snowpack:A": "sed -i 's|\"snowpack.*|//&|' .babelrc.json",
+    "snowpack:B": "run-s build:ts",
+    "snowpack:C": "snowpack --include serve/*.js",
+    "snowpack:D": "sed -i 's|//\"snowpack|\"snowpack|' .babelrc.json",
+    "build:ts": "babel src --out-dir serve --extensions \".tsx\" --source-maps",
+    "build:css": "tailwindcss build src/styles.css --output serve/tailwind.css",
+    "build:assets": "mkdir -p serve && cp -r ./static/* ./web_modules serve/",
+    "setup": "run-s snowpack build",
+    "snowpack": "run-s snowpack:*",
+    "build": "run-p build:*",
+    "serve": "servor ./serve --reload",
+    "start": "run-p \"build:ts -- --watch\" serve"
+  },
+  "dependencies": {
+    "sinuous": "^0.27.1",
+    "tailwindcss": "^1.2.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-transform-react-jsx": "^7.9.4",
+    "@babel/plugin-transform-typescript": "^7.9.4",
+    "@typescript-eslint/eslint-plugin": "^2.27.0",
+    "@typescript-eslint/parser": "^2.27.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-react": "^7.19.0",
+    "npm-run-all": "^4.1.5",
+    "servor": "^3.2.0",
+    "snowpack": "^1.6.0",
+    "typescript": "^3.8.3"
+  }
+}

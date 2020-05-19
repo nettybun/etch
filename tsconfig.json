@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "noEmit": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "lib",
+    "pretty": true,
+    "jsx": "preserve",
+    "jsxFactory": "h"
+  }
+}

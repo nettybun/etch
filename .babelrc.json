@@ -1,0 +1,25 @@
+{
+    "sourceMaps": true,
+    "plugins": [
+        [
+            "@babel/plugin-transform-typescript",
+            {
+                "isTSX": true,
+                "jsxPragma": "h"
+            }
+        ],
+        [
+            "@babel/plugin-transform-react-jsx",
+            {
+                "pragma": "h",
+                "pragmaFrag": "h",
+                "throwIfNamespace": true,
+                "runtime": "classic",
+                "useBuiltIns": true,
+                "useNativeSpread": true
+            }
+        ],
+        "snowpack/assets/babel-plugin.js",
+        "./tools/import-ext-patch-babel.js"
+    ]
+}

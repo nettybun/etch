@@ -1,4 +1,4 @@
-import { decl, colours, sizes, css, injectGlobal } from 'styletakeout.macro';
+import { decl, colours, sizes, css, injectGlobal, snippets } from 'styletakeout.macro';
 
 // Most of this is lifted from Tailwind
 injectGlobal`
@@ -10,7 +10,7 @@ injectGlobal`
   }
   html {
     /* It's actually important to have the emoji fonts too */
-    font-family: system-ui,Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    font-family: system-ui,Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Noto Color Emoji";
     line-height: 1.5;
   }
   body {
@@ -27,11 +27,17 @@ injectGlobal`
     max-width: 100%;
     height: auto;
   }
-  .space > * {
+  .v-space > * {
     margin-bottom: ${sizes._04};
   }
-  .space > :last-child {
+  .v-space > :last-child {
     margin-bottom: 0;
+  }
+  .h-space > * {
+    margin-right: ${sizes._04};
+  }
+  .h-space > :last-child {
+    margin-right: 0;
   }
 `;
 
@@ -39,20 +45,37 @@ injectGlobal`
 // Then Ctrl+Hover will show you the full definition as a hint in VSCode.
 const styles = {
   Page: css`
+    display: flex;
     background-color: ${decl.pageBackground};
-    margin-bottom: 5px;
     padding: ${sizes._08};
-    max-width: 800px;
+    > section {
+      flex: 1;
+    }
+    > :first-child {
+      min-width: 300px;
+      flex: 0;
+    }
   `,
   ButtonBlue: css`
+    min-width: 80px;
     color: ${colours.white};
     padding: ${sizes._02} ${sizes._04};
     background-color: ${colours.blue._400};
     border: 2px solid ${colours.blue._200};
-    border-radius: 5px;
+    border-radius: 2px;
+    ${snippets.text.xs}
     &:hover {
       background-color: ${colours.blue._500};
     }
+  `,
+  Bordered: css`
+    display: inline-block;
+    border: 1px solid ${colours.indigo._400};
+  `,
+  ForceEmoji: css`
+    font-family: "Apple Color Emoji","Noto Color Emoji";
+    font-size: 60%;
+    vertical-align: middle;
   `,
 };
 

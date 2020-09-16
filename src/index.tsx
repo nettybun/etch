@@ -1,25 +1,131 @@
-import { h, api } from './sinuous.js';
-import { css, snippets, sizes } from 'styletakeout.macro';
+import { h } from './sinuous.js';
+import { css, snippets, sizes, colours } from 'styletakeout.macro';
 
 import { styles } from './styles.js';
-import { o } from 'sinuous/observable';
+import { o, computed, subscribe } from 'sinuous/observable';
 
-const number = o(0);
+const NO_CURSOR = '✖';
+const DEFAULT_TILE_COUNT_X = 20;
+const DEFAULT_TILE_COUNT_Y = 20;
+const DEFAULT_TILE_SIZE_PX = 20;
+const BG_COLOUR = '#FFF';
+
+const cursor = o(NO_CURSOR);
+const tileCountX = o(DEFAULT_TILE_COUNT_X);
+const tileCountY = o(DEFAULT_TILE_COUNT_Y);
+const tileSizePx = o(DEFAULT_TILE_SIZE_PX);
+
+// TODO: There's a border so +1
+const canvasWidthPx = computed(() => tileCountX() * tileSizePx() + 1);
+const canvasHeightPx = computed(() => tileCountY() * tileSizePx() + 1);
+
+// Colours
+// TODO: Use a palette for over-the-wire encoding of limited colours
+// TODO: Support colours. Don't hardcode #000
+const brushColour = '#000';
+const palette = [];
+
+// const emptyTilesNew = () => new Array<string>(tileCountX() * tileCountY());
+// ReferenceError: Can't access lexical declaration 'tiles' before initialization
+// const tiles = emptyTilesNew();
+
+// @ts-ignore Apparently this can take a seed value? Need a PR for Sinuous...
+const tiles = computed((current?: string[][]) => {
+  const tilesNew
+    = new Array<string[]>(tileCountY()).fill(new Array(tileCountX()));
+  if (!current) {
+    for (const row of tilesNew) row.fill(BG_COLOUR);
+    return tilesNew;
+  }
+  // Carry-over the current values
+  for (let y = 0; y < tileCountY(); y++)
+    for (let x = 0; x < tileCountX(); x++)
+      tilesNew[y][x]
+        = (y < current.length && x < current[y].length)
+          ? current[y][x]
+          : BG_COLOUR;
+  return tilesNew;
+});
+window.tiles = tiles;
+
+const ClickButton = ({ text, fn }: { text: string, fn: () => unknown }) =>
+  <button class={styles.ButtonBlue} type="button" onClick={fn}>{text}</button>;
 
 const Page = () =>
-  <main class={`${styles.Page} space`}>
-    <h1 class={css`font-weight: 400; ${snippets.text.xl_4}`}>Hi 🌺</h1>
+  <main class={styles.Page}>
+    <section class='v-space'>
+      <h1 class={css`
+        font-weight: 400;
+        font-size: 32px;
+        line-height: 32px;
+      `}
+      >
+        Etch <span class={styles.ForceEmoji}>✏️</span>
+      </h1>
+      <p>Board size: {tileCountX}x{tileCountY}</p>
+      <p>Tile size:
+        <input
+          type="number"
+          value={tileSizePx}
+          onInput={(ev) => {
+            tileSizePx(Number((ev.target as HTMLInputElement).value));
+          }}
+          class={css`
+          padding: ${sizes._01} ${sizes._02};
+          margin-left: ${sizes._01};
+          color: ${colours.gray._700};
+          border-width: 2px;
+          &:focus {
+            border-color: ${colours.purple._300};
+          }
+        `}
+        />
+      </p>
 
-    <p>This is a content</p>
-    <p>{number}</p>
+      <div class='h-space'>
+        <ClickButton text='X++' fn={() => tileCountX(tileCountX() + 1)}/>
+        <ClickButton text='X--' fn={() => tileCountX(tileCountX() - 1)}/>
+      </div>
+      <div class='h-space'>
+        <ClickButton text='Y++' fn={() => tileCountY(tileCountY() + 1)}/>
+        <ClickButton text='Y--' fn={() => tileCountY(tileCountY() - 1)}/>
+      </div>
+    </section>
 
-    <button
-      class={styles.ButtonBlue}
-      type="button"
-      onClick={() => number(number() + 1)}
-    >
-      +1
-    </button>
+    <section>
+      <div class={styles.Bordered}>
+        {() => {
+          console.log('Draw');
+          return tiles().map((row, y) =>
+            <div>
+              {row.map((text, x) =>
+                <div
+                  class={styles.Bordered}
+                  style={() => ({
+                    width: tileSizePx(),
+                    height: tileSizePx(),
+                    backgroundColor: text,
+                  })}
+                  data-coord={`${x},${y}`}
+                  // @ts-ignore Sinuous wants OrObservable<MouseEventHandler<HTMLDivElement>>
+                  onClick={tileClick}
+                />
+              )}
+            </div>
+          );
+        }}
+      </div>
+    </section>
   </main>;
+
+const tileClick = ({ target }: { target: HTMLDivElement }) => {
+  console.log('Click');
+  if (!target.dataset.coord) return;
+  const [x, y] = target.dataset.coord.split(',').map(Number);
+  const arr = tiles();
+  arr[y][x] = brushColour;
+  console.log('Sending updated thing');
+  tiles(arr);
+};
 
 document.body.appendChild(<Page />);

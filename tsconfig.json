@@ -6,7 +6,6 @@
     "noEmit": true,
     "strict": true,
     "esModuleInterop": true,
-    "outDir": "lib",
     "pretty": true,
     "jsx": "preserve",
     "jsxFactory": "h"

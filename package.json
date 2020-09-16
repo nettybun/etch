@@ -1,46 +1,53 @@
 {
-  "name": "beadloom",
+  "name": "etch",
   "version": "0.0.0",
-  "description": "Beads",
+  "description": "Etch collaborative drawing",
   "keywords": [],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "ssh://git@stayknit.ca:beadloom.git"
+    "url": "ssh://git@stayknit.ca:etch.git"
   },
   "author": "Gen Hames",
   "main": "src/index.tsx",
+  "type": "module",
   "scripts": {
-    "snowpack:A": "sed -i 's|\"snowpack.*|//&|' .babelrc.json",
-    "snowpack:B": "run-s build:ts",
-    "snowpack:C": "snowpack --include serve/*.js",
-    "snowpack:D": "sed -i 's|//\"snowpack|\"snowpack|' .babelrc.json",
-    "build:ts": "babel src --out-dir serve --extensions \".tsx\" --source-maps",
-    "build:css": "tailwindcss build src/styles.css --output serve/tailwind.css",
-    "build:assets": "mkdir -p serve && cp -r ./static/* ./web_modules serve/",
-    "setup": "run-s snowpack build",
-    "snowpack": "run-s snowpack:*",
+    "build:ts": "babel src --out-dir serve --extensions \".ts,.tsx\" --source-maps",
+    "build:static": "mkdir -p serve && cp -r ./static/* serve/",
     "build": "run-p build:*",
-    "serve": "servor ./serve --reload",
-    "start": "run-p \"build:ts -- --watch\" serve"
+    "install": "npm run snowpack",
+    "serve": "servor ./serve",
+    "start": "run-p \"build:ts -- --watch\" serve",
+    "snowpack": "mkdir -p serve && snowpack && cp -r ./web_modules serve/",
+    "publish": "git fetch . work:publish"
+  },
+  "snowpack": {
+    "scripts": {
+      "mount:src": "mount src"
+    }
   },
   "dependencies": {
-    "sinuous": "^0.27.1",
-    "tailwindcss": "^1.2.0"
+    "sinuous": "^0.27.8",
+    "sinuous-lifecycle": "^2.0.1",
+    "sinuous-trace": "^2.2.0",
+    "styletakeout.macro": "2.0.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.9.0",
-    "@babel/plugin-transform-react-jsx": "^7.9.4",
-    "@babel/plugin-transform-typescript": "^7.9.4",
-    "@typescript-eslint/eslint-plugin": "^2.27.0",
-    "@typescript-eslint/parser": "^2.27.0",
-    "eslint": "^6.8.0",
-    "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-react": "^7.19.0",
+    "@babel/cli": "^7.11.6",
+    "@babel/core": "^7.11.6",
+    "@babel/plugin-transform-react-jsx": "^7.10.4",
+    "@babel/plugin-transform-typescript": "^7.11.0",
+    "@snowpack/babel-plugin-package-import": "^1.1.2",
+    "@typescript-eslint/eslint-plugin": "^4.1.0",
+    "@typescript-eslint/parser": "^4.1.0",
+    "babel-plugin-macros": "^2.8.0",
+    "eslint": "^7.8.1",
+    "eslint-import-resolver-typescript": "^2.3.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-react": "^7.20.6",
     "npm-run-all": "^4.1.5",
-    "servor": "^3.2.0",
-    "snowpack": "^1.6.0",
-    "typescript": "^3.8.3"
+    "servor": "^4.0.2",
+    "snowpack": "^2.10.1",
+    "typescript": "^4.0.2"
   }
 }

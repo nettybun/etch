@@ -16,7 +16,7 @@
     "build:static": "mkdir -p serve && cp -r ./static/* serve/",
     "build": "run-p build:*",
     "install": "npm run snowpack",
-    "serve": "servor ./serve",
+    "serve": "live-server ./serve",
     "start": "run-p \"build:ts -- --watch\" serve",
     "snowpack": "mkdir -p serve && snowpack && cp -r ./web_modules serve/",
     "publish": "git fetch . work:publish"
@@ -45,8 +45,8 @@
     "eslint-import-resolver-typescript": "^2.3.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-react": "^7.20.6",
+    "live-server": "^1.2.1",
     "npm-run-all": "^4.1.5",
-    "servor": "^4.0.2",
     "snowpack": "^2.10.1",
     "typescript": "^4.0.2"
   }

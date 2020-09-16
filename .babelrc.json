@@ -6,8 +6,6 @@
       {
         "styletakeout": {
           "outputFile": "serve/takeout.css",
-          "timing": true,
-          // "stdoutPatch": false
           // "beautify": false
           "variables": {
             "colours": {

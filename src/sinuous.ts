@@ -16,8 +16,9 @@ import type { Observable } from 'sinuous/observable';
 Object.assign(api, { subscribe, cleanup, root, sample });
 
 type El = HTMLElement | SVGElement | DocumentFragment
+type Component = () => El
 type HCall = (
-  tag: () => El | Observable<unknown> | ElementChildren[] | [] | string,
+  tag: Component | Observable<unknown> | ElementChildren[] | [] | string,
   props?: (JSXInternal.HTMLAttributes | JSXInternal.SVGAttributes) & Record<string, unknown>,
   ...children: ElementChildren[]
 ) => El;

@@ -22,5 +22,4 @@ const Page = () =>
     </button>
   </main>;
 
-
 document.body.appendChild(<Page />);

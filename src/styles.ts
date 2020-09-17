@@ -48,13 +48,6 @@ const styles = {
     display: flex;
     background-color: ${decl.pageBackground};
     padding: ${sizes._08};
-    > section {
-      flex: 1;
-    }
-    > :first-child {
-      min-width: 300px;
-      flex: 0;
-    }
   `,
   ButtonBlue: css`
     min-width: 80px;

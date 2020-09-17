@@ -1,64 +1,22 @@
 import { h } from './sinuous.js';
-import { css, snippets, sizes, colours } from 'styletakeout.macro';
-
+import { css, sizes, colours, snippets } from 'styletakeout.macro';
 import { styles } from './styles.js';
-import { o, computed, subscribe, on } from 'sinuous/observable';
+import { data } from './data.js';
 
-const NO_CURSOR = '✖';
-const DEFAULT_TILE_COUNT_X = 20;
-const DEFAULT_TILE_COUNT_Y = 20;
-const DEFAULT_TILE_SIZE_PX = 20;
-const BG_COLOUR = '#FFF';
+import { Tiles } from './visual/tiles.js';
+import { Palette } from './visual/palette.js';
 
-const cursor = o(NO_CURSOR);
-const tileCountX = o(DEFAULT_TILE_COUNT_X);
-const tileCountY = o(DEFAULT_TILE_COUNT_Y);
-const tileSizePx = o(DEFAULT_TILE_SIZE_PX);
+import { o } from 'sinuous/observable';
+const lzDataText = o('');
 
-// TODO: There's a border so +1
-const canvasWidthPx = computed(() => tileCountX() * tileSizePx() + 1);
-const canvasHeightPx = computed(() => tileCountY() * tileSizePx() + 1);
-
-// Colours
-// TODO: Use a palette for over-the-wire encoding of limited colours
-// TODO: Support colours. Don't hardcode #000
-const brushColour = '#000';
-const palette = [];
-
-// Can't use new Array().fill(new Array()) since it's filling a shared object
-const newTiles = (x: number, y: number) => {
-  const arr = new Array<string[]>(y);
-  for (let i = 0; i < y; i++) arr[i] = new Array<string>(x);
-  return arr;
-};
-// ReferenceError: Can't access lexical declaration 'tiles' before initialization
-const tilesEmpty = newTiles(tileCountX(), tileCountY());
-for (const row of tilesEmpty) row.fill(BG_COLOUR);
-const tiles = o(tilesEmpty);
-
-// Sinuous PR...
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-on([tileCountY, tileCountX], () => {
-  console.log('Size change');
-  const current = tiles();
-  const [cX, cY] = [tileCountX(), tileCountY()];
-  const tilesNew = newTiles(cX, cY);
-  // Carry-over the current values
-  for (let y = 0; y < cY; y++)
-    for (let x = 0; x < cX; x++)
-      tilesNew[y][x]
-        = (y < current.length && x < current[y].length)
-          ? current[y][x]
-          : BG_COLOUR;
-  tiles(tilesNew);
-}, null, true);
+const { tiles: { cursor, tileCountX, tileCountY, tileSizePx } } = data;
 
 const ClickButton = ({ text, fn }: { text: string, fn: () => unknown }) =>
   <button class={styles.ButtonBlue} type="button" onClick={fn}>{text}</button>;
 
 const Page = () =>
   <main class={styles.Page}>
-    <section class='v-space'>
+    <section class='v-space' style='width: 400px;'>
       <h1 class={css`
         font-weight: 400;
         font-size: 32px;
@@ -67,6 +25,7 @@ const Page = () =>
       >
         Etch <span class={styles.ForceEmoji}>✏️</span>
       </h1>
+      <p>Last click: {cursor}</p>
       <p>Board size: {tileCountX}x{tileCountY}</p>
       <p>Tile size:
         <input
@@ -95,42 +54,24 @@ const Page = () =>
         <ClickButton text='Y++' fn={() => tileCountY(tileCountY() + 1)}/>
         <ClickButton text='Y--' fn={() => tileCountY(tileCountY() - 1)}/>
       </div>
+      <Palette />
     </section>
 
-    <section>
-      <div class={styles.Bordered}>
-        {() => {
-          console.log('Draw');
-          return tiles().map((row, y) =>
-            <div>
-              {row.map((text, x) =>
-                <div
-                  class={styles.Bordered}
-                  style={() => ({
-                    'width': tileSizePx(),
-                    'height': tileSizePx(),
-                    'background-color': text,
-                  })}
-                  data-coord={`${x},${y}`}
-                  // @ts-ignore Sinuous wants OrObservable<MouseEventHandler<HTMLDivElement>>
-                  onClick={tileClick}
-                />
-              )}
-            </div>
-          );
-        }}
-      </div>
+    <section style='flex: 1;'>
+      <Tiles />
+    </section>
+
+    <section style='width: 400px;'>
+      <ClickButton text='LZString' fn={() => lzDataText(data.tiles.lzData())}/>
+      <pre class={css`
+        white-space: pre-wrap;
+        word-wrap: anywhere;
+        ${snippets.text.xs}
+      `}
+      >
+        {lzDataText}
+      </pre>
     </section>
   </main>;
-
-const tileClick = ({ target }: { target: HTMLDivElement }) => {
-  console.log('Click');
-  if (!target.dataset.coord) return;
-  const [x, y] = target.dataset.coord.split(',').map(Number);
-  const arr = tiles();
-  arr[y][x] = brushColour;
-  console.log(`Updated (${x},${y})`, arr);
-  tiles(arr);
-};
 
 document.body.appendChild(<Page />);

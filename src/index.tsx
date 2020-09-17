@@ -2,7 +2,7 @@ import { h } from './sinuous.js';
 import { css, snippets, sizes, colours } from 'styletakeout.macro';
 
 import { styles } from './styles.js';
-import { o, computed, subscribe } from 'sinuous/observable';
+import { o, computed, subscribe, on } from 'sinuous/observable';
 
 const NO_CURSOR = '✖';
 const DEFAULT_TILE_COUNT_X = 20;
@@ -25,28 +25,33 @@ const canvasHeightPx = computed(() => tileCountY() * tileSizePx() + 1);
 const brushColour = '#000';
 const palette = [];
 
-// const emptyTilesNew = () => new Array<string>(tileCountX() * tileCountY());
+// Can't use new Array().fill(new Array()) since it's filling a shared object
+const newTiles = (x: number, y: number) => {
+  const arr = new Array<string[]>(y);
+  for (let i = 0; i < y; i++) arr[i] = new Array<string>(x);
+  return arr;
+};
 // ReferenceError: Can't access lexical declaration 'tiles' before initialization
-// const tiles = emptyTilesNew();
+const tilesEmpty = newTiles(tileCountX(), tileCountY());
+for (const row of tilesEmpty) row.fill(BG_COLOUR);
+const tiles = o(tilesEmpty);
 
-// @ts-ignore Apparently this can take a seed value? Need a PR for Sinuous...
-const tiles = computed((current?: string[][]) => {
-  const tilesNew
-    = new Array<string[]>(tileCountY()).fill(new Array(tileCountX()));
-  if (!current) {
-    for (const row of tilesNew) row.fill(BG_COLOUR);
-    return tilesNew;
-  }
+// Sinuous PR...
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+on([tileCountY, tileCountX], () => {
+  console.log('Size change');
+  const current = tiles();
+  const [cX, cY] = [tileCountX(), tileCountY()];
+  const tilesNew = newTiles(cX, cY);
   // Carry-over the current values
-  for (let y = 0; y < tileCountY(); y++)
-    for (let x = 0; x < tileCountX(); x++)
+  for (let y = 0; y < cY; y++)
+    for (let x = 0; x < cX; x++)
       tilesNew[y][x]
         = (y < current.length && x < current[y].length)
           ? current[y][x]
           : BG_COLOUR;
-  return tilesNew;
-});
-window.tiles = tiles;
+  tiles(tilesNew);
+}, null, true);
 
 const ClickButton = ({ text, fn }: { text: string, fn: () => unknown }) =>
   <button class={styles.ButtonBlue} type="button" onClick={fn}>{text}</button>;
@@ -102,9 +107,9 @@ const Page = () =>
                 <div
                   class={styles.Bordered}
                   style={() => ({
-                    width: tileSizePx(),
-                    height: tileSizePx(),
-                    backgroundColor: text,
+                    'width': tileSizePx(),
+                    'height': tileSizePx(),
+                    'background-color': text,
                   })}
                   data-coord={`${x},${y}`}
                   // @ts-ignore Sinuous wants OrObservable<MouseEventHandler<HTMLDivElement>>
@@ -124,7 +129,7 @@ const tileClick = ({ target }: { target: HTMLDivElement }) => {
   const [x, y] = target.dataset.coord.split(',').map(Number);
   const arr = tiles();
   arr[y][x] = brushColour;
-  console.log('Sending updated thing');
+  console.log(`Updated (${x},${y})`, arr);
   tiles(arr);
 };
 

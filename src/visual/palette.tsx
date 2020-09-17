@@ -6,8 +6,8 @@ const { brushColour, palette } = data;
 
 const swatch = css`
   display: inline-block;
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
   border-radius: 2px;
   border: 1px solid;
   margin: 10px 10px 0 0;

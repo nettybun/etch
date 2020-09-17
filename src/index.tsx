@@ -5,6 +5,7 @@ import { data } from './data.js';
 
 import { Tiles } from './visual/tiles.js';
 import { Palette } from './visual/palette.js';
+import { ArrowButton } from './visual/arrowbutton.js';
 
 import { o } from 'sinuous/observable';
 const lzDataText = o('');
@@ -26,33 +27,16 @@ const Page = () =>
         Etch <span class={styles.ForceEmoji}>✏️</span>
       </h1>
       <p>Last click: {cursor}</p>
-      <p>Board size: {tileCountX}x{tileCountY}</p>
-      <p>Tile size:
-        <input
-          type="number"
-          value={tileSizePx}
-          onInput={(ev) => {
-            tileSizePx(Number((ev.target as HTMLInputElement).value));
-          }}
-          class={css`
-          padding: ${sizes._01} ${sizes._02};
-          margin-left: ${sizes._01};
-          color: ${colours.gray._700};
-          border-width: 2px;
-          &:focus {
-            border-color: ${colours.purple._300};
-          }
-        `}
-        />
-      </p>
 
-      <div class='h-space'>
-        <ClickButton text='X++' fn={() => tileCountX(tileCountX() + 1)}/>
-        <ClickButton text='X--' fn={() => tileCountX(tileCountX() - 1)}/>
-      </div>
-      <div class='h-space'>
-        <ClickButton text='Y++' fn={() => tileCountY(tileCountY() + 1)}/>
-        <ClickButton text='Y--' fn={() => tileCountY(tileCountY() - 1)}/>
+      <div class={css`
+        display: flex;
+        align-items: center;
+        font-size: 120%;
+      `}
+      >
+        <ArrowButton obs={tileCountX}/>x
+        <ArrowButton obs={tileCountY}/>@
+        <ArrowButton obs={tileSizePx}/>px/tile
       </div>
       <Palette />
     </section>

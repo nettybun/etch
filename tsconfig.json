@@ -8,6 +8,10 @@
     "esModuleInterop": true,
     "pretty": true,
     "jsx": "preserve",
-    "jsxFactory": "h"
+    "jsxFactory": "h",
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ]
   }
 }

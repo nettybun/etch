@@ -76,7 +76,7 @@ export const data = {
 
       const asFile = {
         palette: pals,
-        data: tileData().map(row => row.map(text => palMap[text]).join('')).join(','),
+        data: tileData().map(row => row.map(text => palMap[text] || '.').join('')).join(','),
       };
       const serialized = JSON.stringify(asFile);
       return `${serialized}\n\n${LZString.compressToEncodedURIComponent(serialized)}`;

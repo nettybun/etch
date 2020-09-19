@@ -13,17 +13,6 @@ const swatch = css`
   margin: 10px 10px 0 0;
 `;
 
-const ColourInput = () =>
-  <input
-    type='color'
-    value={brushColour}
-    onInput={({ target }) => {
-      const { value } = (target as HTMLInputElement);
-      // This also updates the palette as needed
-      brushColour(value);
-    }}
-  />;
-
 const Swatch = ({ colour }: { colour: string }) =>
   <div
     class={swatch}
@@ -33,7 +22,6 @@ const Swatch = ({ colour }: { colour: string }) =>
 
 const Palette = (): h.JSX.Element =>
   <div>
-    <ColourInput />
     <div>
       {() => palette().map(colour => <Swatch colour={colour} />)}
     </div>

@@ -6,6 +6,7 @@ import { data } from './data.js';
 import { Tiles } from './visual/tiles.js';
 import { Palette } from './visual/palette.js';
 import { ArrowButton } from './visual/arrowbutton.js';
+import { ColourPicker } from './visual/colourpicker.js';
 
 import { o } from 'sinuous/observable';
 const lzDataText = o('');
@@ -39,6 +40,7 @@ const Page = () =>
         <ArrowButton obs={tileSizePx}/>px/tile
       </div>
       <Palette />
+      <ColourPicker />
     </section>
 
     <section style='flex: 1;'>

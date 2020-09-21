@@ -1,11 +1,12 @@
 import { h } from '../sinuous.js';
-import { styles } from '../styles.js';
 import { data } from '../data.js';
 import { subscribe, sample, computed } from 'sinuous/observable';
+import { debounce, throttle } from '../util.js';
 
 const {
+  click,
+  hover,
   tiles: {
-    cursor,
     tileData,
     tileCountX,
     tileCountY,
@@ -13,6 +14,16 @@ const {
   },
   brushColour,
 } = data;
+
+// Hard on the eyes if it's too fast...
+const hoverThrottled = throttle(hover, 50);
+
+const colourTile = (x: number, y: number) => {
+  const arr = tileData();
+  if (arr[y][x] === brushColour()) return;
+  arr[y][x] = brushColour();
+  tileData(arr);
+};
 
 const TilesCanvas = (): h.JSX.Element => {
   const canvas = <canvas/> as HTMLCanvasElement;
@@ -22,15 +33,6 @@ const TilesCanvas = (): h.JSX.Element => {
     return <div>No canvas support</div>;
   }
   ctx.imageSmoothingEnabled = false;
-
-  // There's a border so +1
-  const canvasWidthPx = computed(() => tileCountX() * tileSizePx() + 1);
-  const canvasHeightPx = computed(() => tileCountY() * tileSizePx() + 1);
-
-  // FIXME: BUG: Observable runs after the data is written, so the canvas is
-  // cleared. https://stackoverflow.com/q/11179274/
-  subscribe(() => canvas.width = canvasWidthPx());
-  subscribe(() => canvas.height = canvasHeightPx());
 
   // Two options for drawing a grid:
   // - Draw the grid and account for the grid widths to know the tile location
@@ -66,15 +68,26 @@ const TilesCanvas = (): h.JSX.Element => {
     ctx.closePath();
   };
 
-  // TODO: Maintain a list of dirty values to update instead of everything...
+  // let toRedraw = [];
   subscribe(() => {
-    console.log('Draw');
     const data = tileData();
     const size = tileSizePx();
     // Don't redraw when the count changes: tiles() will update via computed()
     const cX = sample(tileCountX);
     const cY = sample(tileCountY);
-    console.log(cX, cY);
+
+    // There's a border so +1
+    const canvasWidthPx = cX * size + 1;
+    const canvasHeightPx = cY * size + 1;
+    // If this is a different observable/subscription there's a race condition
+    // where canvas resizing runs _after_ data is drawn. Resizing always clears
+    // a canvas: https://stackoverflow.com/q/11179274/
+    if (canvas.width !== canvasWidthPx || canvas.height !== canvasHeightPx) {
+      console.log('Resizing canvas');
+      canvas.width = canvasWidthPx;
+      canvas.height = canvasHeightPx;
+    }
+    console.log('Draw');
     for (let y = 0; y < cY; y++) {
       for (let x = 0; x < cX; x++) {
         drawSquare(x, y, size, data[y][x]);
@@ -82,53 +95,42 @@ const TilesCanvas = (): h.JSX.Element => {
     }
   });
 
+  const coord = (ev: MouseEvent) => {
+    const size = tileSizePx();
+    const x = Math.floor(ev.offsetX / size);
+    const y = Math.floor(ev.offsetY / size);
+    return { x, y };
+  };
+
+  let brushDown = false;
+  let brushDragging = false;
+  canvas.addEventListener('mousedown', () => {
+    brushDown = true;
+  });
+  canvas.addEventListener('mouseup', ev => {
+    brushDown = false;
+    if (brushDragging) {
+      console.log('Dragend');
+      brushDragging = false;
+      const { x, y } = coord(ev);
+      colourTile(x, y);
+    }
+  });
+  canvas.addEventListener('mousemove', ev => {
+    const { x, y } = coord(ev);
+    hoverThrottled(`(${ev.offsetX}, ${ev.offsetY}) ➡ (${x}, ${y})`);
+    if (brushDown) {
+      brushDragging = true;
+      colourTile(x, y);
+    }
+  });
   canvas.addEventListener('click', ev => {
-    const x = Math.floor(ev.offsetX / tileCountX());
-    const y = Math.floor(ev.offsetY / tileCountY());
-    const arr = tileData();
-    if (arr[y][x] === brushColour()) return;
-    console.log(`Updated (${x},${y})`);
-    cursor(`(${x},${y})`);
-    arr[y][x] = brushColour();
-    tileData(arr);
+    const { x, y } = coord(ev);
+    click(`(${x}, ${y})`);
+    colourTile(x, y);
   });
 
   return canvas;
 };
 
-const Tiles = (): h.JSX.Element =>
-  <div class={styles.Bordered}>
-    {() => {
-      console.log('Draw');
-      return tileData().map((row, y) =>
-        <div>
-          {row.map((text, x) =>
-            <div
-              class={styles.Bordered}
-              style={() => ({
-                'width': tileSizePx(),
-                'height': tileSizePx(),
-                'background-color': text,
-              })}
-              data-coord={`${x},${y}`}
-              // @ts-ignore Sinuous wants OrObservable<MouseEventHandler<HTMLDivElement>>
-              onClick={tileClick}
-            />
-          )}
-        </div>
-      );
-    }}
-  </div>;
-
-const tileClick = ({ target }: { target: HTMLDivElement }) => {
-  if (!target.dataset.coord) return;
-  const [x, y] = target.dataset.coord.split(',').map(Number);
-  const arr = tileData();
-  if (arr[y][x] === brushColour()) return;
-  console.log(`Updated (${x},${y})`);
-  cursor(`(${x},${y})`);
-  arr[y][x] = brushColour();
-  tileData(arr);
-};
-
-export { Tiles, TilesCanvas };
+export { TilesCanvas };

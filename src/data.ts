@@ -2,8 +2,8 @@ import { o, computed, on } from 'sinuous/observable';
 import LZString from 'lz-string/libs/lz-string.min.js';
 
 const NO_CURSOR = '✖';
-const DEFAULT_TILE_COUNT_X = 20;
-const DEFAULT_TILE_COUNT_Y = 20;
+const DEFAULT_TILE_COUNT_X = 40;
+const DEFAULT_TILE_COUNT_Y = 40;
 const DEFAULT_TILE_SIZE_PX = 20;
 const BG_COLOUR = '#FFF';
 const DEFAULT_PALETTE = [
@@ -12,7 +12,6 @@ const DEFAULT_PALETTE = [
   '#71a7ff', '#9583ff', '#ff95ff',
 ];
 
-const cursor = o(NO_CURSOR);
 const tileCountX = o(DEFAULT_TILE_COUNT_X);
 const tileCountY = o(DEFAULT_TILE_COUNT_Y);
 const tileSizePx = o(DEFAULT_TILE_SIZE_PX);
@@ -58,8 +57,9 @@ on([tileCountY, tileCountX], () => {
 }, null, true);
 
 export const data = {
+  hover: o(NO_CURSOR),
+  click: o(NO_CURSOR),
   tiles: {
-    cursor,
     tileData,
     tileCountX,
     tileCountY,

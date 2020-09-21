@@ -3,7 +3,7 @@ import { css, sizes, colours, snippets } from 'styletakeout.macro';
 import { styles } from './styles.js';
 import { data } from './data.js';
 
-import { Tiles, TilesCanvas } from './visual/tiles.js';
+import { TilesCanvas } from './visual/tiles.js';
 import { Palette } from './visual/palette.js';
 import { ArrowButton } from './visual/arrowbutton.js';
 import { ColourPicker } from './visual/colourpicker.js';
@@ -11,7 +11,11 @@ import { ColourPicker } from './visual/colourpicker.js';
 import { o } from 'sinuous/observable';
 const lzDataText = o('');
 
-const { tiles: { cursor, tileCountX, tileCountY, tileSizePx } } = data;
+const {
+  click,
+  hover,
+  tiles: { tileCountX, tileCountY, tileSizePx },
+} = data;
 
 const ClickButton = ({ text, fn }: { text: string, fn: () => unknown }) =>
   <button class={styles.ButtonBlue} type="button" onClick={fn}>{text}</button>;
@@ -27,7 +31,8 @@ const Page = () =>
       >
         Etch <span class={styles.ForceEmoji}>✏️</span>
       </h1>
-      <p>Last click: {cursor}</p>
+      <p>Hover: {hover}</p>
+      <p>Last click: {click}</p>
 
       <div class={css`
         display: flex;
@@ -44,7 +49,6 @@ const Page = () =>
     </section>
 
     <section style='flex: 1;'>
-      {/* <Tiles /> */}
       <TilesCanvas />
     </section>
 

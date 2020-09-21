@@ -74,7 +74,7 @@ const ColourPicker = (): h.JSX.Element =>
         border: 1px solid grey;
         width: 100%;
       `}
-      onInput={({ target }) => {
+      onChange={({ target }) => {
         const { value } = (target as HTMLInputElement);
         // This also updates the palette as needed
         brushColour(value);

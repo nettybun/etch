@@ -1,7 +1,7 @@
 import { h } from '../sinuous.js';
 import { styles } from '../styles.js';
 import { data } from '../data.js';
-import { subscribe, sample } from 'sinuous/observable';
+import { subscribe, sample, computed } from 'sinuous/observable';
 
 const {
   tiles: {
@@ -10,10 +10,6 @@ const {
     tileCountX,
     tileCountY,
     tileSizePx,
-  },
-  canvas: {
-    canvasWidthPx,
-    canvasHeightPx,
   },
   brushColour,
 } = data;
@@ -26,6 +22,11 @@ const TilesCanvas = (): h.JSX.Element => {
     return <div>No canvas support</div>;
   }
   ctx.imageSmoothingEnabled = false;
+
+  // There's a border so +1
+  const canvasWidthPx = computed(() => tileCountX() * tileSizePx() + 1);
+  const canvasHeightPx = computed(() => tileCountY() * tileSizePx() + 1);
+
   subscribe(() => canvas.width = canvasWidthPx());
   subscribe(() => canvas.height = canvasHeightPx());
 

@@ -17,10 +17,6 @@ const tileCountX = o(DEFAULT_TILE_COUNT_X);
 const tileCountY = o(DEFAULT_TILE_COUNT_Y);
 const tileSizePx = o(DEFAULT_TILE_SIZE_PX);
 
-// TODO: There's a border so +1
-const canvasWidthPx = computed(() => tileCountX() * tileSizePx() + 1);
-const canvasHeightPx = computed(() => tileCountY() * tileSizePx() + 1);
-
 // Colours
 const palette = o(DEFAULT_PALETTE);
 const brushColour = o(DEFAULT_PALETTE[0]);
@@ -81,10 +77,6 @@ export const data = {
       const serialized = JSON.stringify(asFile);
       return `${serialized}\n\n${LZString.compressToEncodedURIComponent(serialized)}`;
     },
-  },
-  canvas: {
-    canvasWidthPx,
-    canvasHeightPx,
   },
   brushColour,
   palette,

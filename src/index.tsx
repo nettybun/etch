@@ -3,7 +3,7 @@ import { css, sizes, colours, snippets } from 'styletakeout.macro';
 import { styles } from './styles.js';
 import { data } from './data.js';
 
-import { Tiles } from './visual/tiles.js';
+import { Tiles, TilesCanvas } from './visual/tiles.js';
 import { Palette } from './visual/palette.js';
 import { ArrowButton } from './visual/arrowbutton.js';
 import { ColourPicker } from './visual/colourpicker.js';
@@ -44,7 +44,8 @@ const Page = () =>
     </section>
 
     <section style='flex: 1;'>
-      <Tiles />
+      {/* <Tiles /> */}
+      <TilesCanvas />
     </section>
 
     <section style='width: 400px;'>

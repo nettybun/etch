@@ -89,3 +89,6 @@ export const data = {
   brushColour,
   palette,
 };
+
+// @ts-ignore
+window.data = data;

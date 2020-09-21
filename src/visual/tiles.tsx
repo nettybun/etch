@@ -27,6 +27,8 @@ const TilesCanvas = (): h.JSX.Element => {
   const canvasWidthPx = computed(() => tileCountX() * tileSizePx() + 1);
   const canvasHeightPx = computed(() => tileCountY() * tileSizePx() + 1);
 
+  // FIXME: BUG: Observable runs after the data is written, so the canvas is
+  // cleared. https://stackoverflow.com/q/11179274/
   subscribe(() => canvas.width = canvasWidthPx());
   subscribe(() => canvas.height = canvasHeightPx());
 

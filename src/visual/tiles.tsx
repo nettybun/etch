@@ -1,4 +1,4 @@
-import { h } from '../sinuous.js';
+import { h } from 'sinuous';
 import { data } from '../data.js';
 import { subscribe, sample, computed } from 'sinuous/observable';
 import { debounce, throttle } from '../util.js';

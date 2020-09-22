@@ -1,5 +1,5 @@
-import { h } from './sinuous.js';
-import { css, sizes, colours, snippets } from 'styletakeout.macro';
+import { h } from 'sinuous';
+import { css, colours, snippets } from 'styletakeout.macro';
 import { styles } from './styles.js';
 import { data } from './data.js';
 import { o } from 'sinuous/observable';

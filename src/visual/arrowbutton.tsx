@@ -1,6 +1,6 @@
-import { h, svg } from '../sinuous.js';
+import { h, api } from 'sinuous';
 import { css, sizes } from 'styletakeout.macro';
-import { Observable } from 'sinuous/observable';
+import type { Observable } from 'sinuous/observable';
 
 const numberEditable = css`
   display: inline-block;
@@ -20,24 +20,22 @@ const ArrowButton = (attrs: { obs: Observable<number> }): h.JSX.Element => {
       display: inline-flex;
       flex-direction: column;
       align-items: center;
-    `}
-    >
-      {svg(() =>
+    `}>
+      {/* TODO: hs: <T extends () => h.JSX.Element>(closure: T) => ReturnType<T>; */}
+      {api.hs(() =>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="4 4 16 16" stroke="currentColor" width='20px' onClick={() => attrs.obs(attrs.obs() + 1)}>
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7"/>
         </svg>)}
       {/* Originally I used an <input type='text'> but the CSS is wrong */}
       <span
         class={numberEditable}
         role="textbox"
-        contentEditable
-        // TODO: Add keyup/keydown and enter button handlers...
-      >
+        contentEditable>
         {attrs.obs}
       </span>
-      {svg(() =>
+      {api.hs(() =>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="4 4 16 16" stroke="currentColor" width='20px' onClick={() => attrs.obs(attrs.obs() - 1)}>
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
         </svg>)}
     </div>
   );

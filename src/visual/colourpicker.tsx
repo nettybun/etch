@@ -1,5 +1,5 @@
+import { h } from 'sinuous';
 import { css, colours, snippets } from 'styletakeout.macro';
-import { h } from '../sinuous.js';
 import { data } from '../data.js';
 
 const { brushColour } = data;
@@ -9,10 +9,7 @@ const gradientHue = css`
   height: 30px;
   margin-top: 10px;
   border: 1px solid grey;
-  background: linear-gradient(
-    to right,
-    #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%
-  );
+  background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
 `;
 const gradientSaturation = css`
   background-image: linear-gradient(to right, #fff, rgba(204, 154, 129, 0));
@@ -49,12 +46,11 @@ const ColourPicker = (): h.JSX.Element =>
           right: 0;
           bottom: 0;
         }
-      `}
-    >
-      <div class={gradientSaturation} />
-      <div class={gradientValue} />
+      `}>
+      <div class={gradientSaturation}/>
+      <div class={gradientValue}/>
     </div>
-    <div class={gradientHue} />
+    <div class={gradientHue}/>
 
     <label
       for='colourInput'
@@ -62,8 +58,7 @@ const ColourPicker = (): h.JSX.Element =>
         display: block;
         margin-top: 10px;
         ${snippets.text.sm}
-      `}
-    >
+      `}>
       Browser colour picker:
     </label>
     <input
@@ -78,8 +73,7 @@ const ColourPicker = (): h.JSX.Element =>
         const { value } = (target as HTMLInputElement);
         // This also updates the palette as needed
         brushColour(value);
-      }}
-    />
+      }}/>
   </div>;
 
 export { ColourPicker };

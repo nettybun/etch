@@ -1,4 +1,4 @@
-import { h } from '../sinuous.js';
+import { h } from 'sinuous';
 import { css } from 'styletakeout.macro';
 import { data } from '../data.js';
 
@@ -17,13 +17,12 @@ const Swatch = ({ colour }: { colour: string }) =>
   <div
     class={swatch}
     style={{ 'background-color': colour }}
-    onClick={() => { brushColour(colour); }}
-  />;
+    onClick={() => { brushColour(colour); }}/>;
 
 const Palette = (): h.JSX.Element =>
   <div>
     <div>
-      {() => palette().map(colour => <Swatch colour={colour} />)}
+      {() => palette().map(colour => <Swatch colour={colour}/>)}
     </div>
   </div>;
 

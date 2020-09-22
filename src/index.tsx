@@ -2,13 +2,13 @@ import { h } from './sinuous.js';
 import { css, sizes, colours, snippets } from 'styletakeout.macro';
 import { styles } from './styles.js';
 import { data } from './data.js';
+import { o } from 'sinuous/observable';
 
 import { TilesCanvas } from './visual/tiles.js';
 import { Palette } from './visual/palette.js';
 import { ArrowButton } from './visual/arrowbutton.js';
 import { ColourPicker } from './visual/colourpicker.js';
 
-import { o } from 'sinuous/observable';
 const lzDataText = o('');
 
 const {
@@ -27,8 +27,7 @@ const Page = () =>
         font-weight: 400;
         font-size: 32px;
         line-height: 32px;
-      `}
-      >
+      `}>
         Etch <span class={styles.ForceEmoji}>✏️</span>
       </h1>
       <p>Hover: {hover}</p>
@@ -38,31 +37,29 @@ const Page = () =>
         display: flex;
         align-items: center;
         font-size: 120%;
-      `}
-      >
+      `}>
         <ArrowButton obs={tileCountX}/>x
         <ArrowButton obs={tileCountY}/>@
         <ArrowButton obs={tileSizePx}/>px/tile
       </div>
-      <Palette />
-      <ColourPicker />
+      <Palette/>
+      <ColourPicker/>
     </section>
 
-    <section style='flex: 1;'>
-      <TilesCanvas />
-    </section>
-
-    <section style='width: 400px;'>
-      <ClickButton text='LZString' fn={() => lzDataText(data.tiles.lzData())}/>
+    <section style='flex: 1;' class='v-space'>
+      <TilesCanvas/>
+      <ClickButton text='Export as LZString' fn={() => lzDataText(data.tiles.lzData())}/>
       <pre class={css`
+        background: ${colours.gray._200};
+        padding: 10px;
+
         white-space: pre-wrap;
         word-wrap: anywhere;
         ${snippets.text.xs}
-      `}
-      >
+      `}>
         {lzDataText}
       </pre>
     </section>
   </main>;
 
-document.body.appendChild(<Page />);
+document.body.appendChild(<Page/>);

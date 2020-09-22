@@ -121,9 +121,7 @@ const TilesCanvas = (): h.JSX.Element => {
     if (typeof brushDown !== 'undefined') {
       // Browsers throttle mousemove. Quickly moving a mouse across an entire
       // screen in ~0.5s returns maybe 5 readings. This fills in the gaps...
-      const line = drawLine(brushDown, c);
-      console.log(line);
-      line.forEach(paintTile);
+      drawLine(brushDown, c).forEach(paintTile);
     }
   });
 

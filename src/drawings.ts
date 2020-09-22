@@ -42,7 +42,8 @@ function drawCircle(center: Point, radius: number): Point[] {
     { x: x0, y: y0 + radius },
     { x: x0, y: y0 - radius },
     { x: x0 + radius, y: y0 },
-    { x: x0 - radius, y: y0 });
+    { x: x0 - radius, y: y0 }
+  );
   while (x < y) {
     if (f >= 0) {
       y -= 1;

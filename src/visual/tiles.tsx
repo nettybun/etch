@@ -2,6 +2,9 @@ import { h } from '../sinuous.js';
 import { data } from '../data.js';
 import { subscribe, sample, computed } from 'sinuous/observable';
 import { debounce, throttle } from '../util.js';
+import { drawLine } from '../drawings.js';
+
+import type { Point } from '../types/etch.js';
 
 const {
   click,
@@ -62,58 +65,38 @@ const TilesCanvas = (): h.JSX.Element => {
     ctx.closePath();
   };
 
-  const drawLine = (x1: number, y1: number, x2: number, y2: number) => {
-    ctx.beginPath();
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = 2;
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-    ctx.closePath();
-  };
-
-  let rAFLineQueue: { x: number, y: number }[] = [];
-  let rAFTileQueue: { x: number, y: number }[] = [];
-  let rAFSet = false;
-  let brushDown = false;
-  let brushDragging = false;
+  let rAFQueue: Point[] = [];
+  let rAFScheduled = false;
+  let brushDown: Point | undefined;
 
   const rAFUpdate = () => {
-    console.log('rAFRedrawQueue:', rAFTileQueue.length);
     const data = tileData();
     const size = tileSizePx();
-    for (const c of rAFTileQueue) {
+    for (const c of rAFQueue) {
       drawSquare(c.x, c.y, size, data[c.y][c.x]);
     }
-    if (rAFLineQueue.length > 1) {
-      let [p] = rAFLineQueue;
-      for (let i = 1; i < rAFLineQueue.length; i++) {
-        const c = rAFLineQueue[i];
-        drawLine(p.x, p.y, c.x, c.y);
-        p = c;
-      }
-      rAFLineQueue = [];
-    }
-    rAFTileQueue = [];
-    rAFSet = false;
+    rAFQueue = [];
+    rAFScheduled = false;
   };
 
-  const updateTile = (coord: { x: number, y: number }) => {
-    const { x, y } = coord;
+  const paintTile = (point: Point) => {
+    const { x, y } = point;
+    // This happens easily in drawing tools like drawCircle()
+    if (x < 0 || y < 0 || x > tileCountX() || y > tileCountY()) return;
     const arr = tileData();
     if (arr[y][x] === brushColour()) return;
     arr[y][x] = brushColour();
     tileData(arr);
 
-    rAFTileQueue.push(coord);
+    rAFQueue.push(point);
     // Call rAF only once since callbacks stack
-    if (!rAFSet) {
+    if (!rAFScheduled) {
       requestAnimationFrame(rAFUpdate);
-      rAFSet = true;
+      rAFScheduled = true;
     }
   };
 
-  const evToCoord = (ev: MouseEvent) => {
+  const evToPoint = (ev: MouseEvent): Point => {
     const size = tileSizePx();
     const x = Math.floor(ev.offsetX / size);
     const y = Math.floor(ev.offsetY / size);
@@ -121,28 +104,26 @@ const TilesCanvas = (): h.JSX.Element => {
   };
 
   canvas.addEventListener('mousedown', ev => {
-    brushDown = true;
-    rAFLineQueue = [{ x: ev.offsetX, y: ev.offsetY }];
+    brushDown = evToPoint(ev);
   });
 
   canvas.addEventListener('mouseup', ev => {
-    rAFLineQueue.push({ x: ev.offsetX, y: ev.offsetY });
+    brushDown = undefined;
 
-    const c = evToCoord(ev);
-    updateTile(c);
+    const c = evToPoint(ev);
+    paintTile(c);
     click(`(${c.x}, ${c.y})`);
-
-    brushDown = false;
-    if (brushDragging) brushDragging = false;
   });
 
   canvas.addEventListener('mousemove', ev => {
-    const c = evToCoord(ev);
+    const c = evToPoint(ev);
     hoverThrottled(`(${ev.offsetX}, ${ev.offsetY}) ➡ (${c.x}, ${c.y})`);
-    if (brushDown) {
-      brushDragging = true;
-      updateTile(c);
-      rAFLineQueue.push({ x: ev.offsetX, y: ev.offsetY });
+    if (typeof brushDown !== 'undefined') {
+      // Browsers throttle mousemove. Quickly moving a mouse across an entire
+      // screen in ~0.5s returns maybe 5 readings. This fills in the gaps...
+      const line = drawLine(brushDown, c);
+      console.log(line);
+      line.forEach(paintTile);
     }
   });
 

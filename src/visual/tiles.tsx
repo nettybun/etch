@@ -21,7 +21,7 @@ const {
 // Hard on the eyes if it's too fast...
 const hoverThrottled = throttle(hover, 50);
 
-const TilesCanvas = (): h.JSX.Element => {
+const TilesCanvas = () => {
   const canvas = <canvas/> as HTMLCanvasElement;
   const ctx = canvas.getContext('2d');
   if (!ctx) {
@@ -96,11 +96,11 @@ const TilesCanvas = (): h.JSX.Element => {
     }
   };
 
-  const evToPoint = (ev: MouseEvent): Point => {
+  const evToPoint = (ev: MouseEvent) => {
     const size = tileSizePx();
     const x = Math.floor(ev.offsetX / size);
     const y = Math.floor(ev.offsetY / size);
-    return { x, y };
+    return { x, y } as Point;
   };
 
   canvas.addEventListener('mousedown', ev => {

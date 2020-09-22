@@ -64,7 +64,7 @@ export const data = {
     tileCountX,
     tileCountY,
     tileSizePx,
-    lzData(): string {
+    lzData() {
       const encoding = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       const pals = palette();
       const palMap: { [key in string]: string } = {};

@@ -19,7 +19,7 @@ const Swatch = ({ colour }: { colour: string }) =>
     style={{ 'background-color': colour }}
     onClick={() => { brushColour(colour); }}/>;
 
-const Palette = (): h.JSX.Element =>
+const Palette = () =>
   <div>
     <div>
       {() => palette().map(colour => <Swatch colour={colour}/>)}

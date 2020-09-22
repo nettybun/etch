@@ -2,7 +2,7 @@ import { Point } from './types/etch.js';
 
 // Bresenham's Line Algorithm
 // https://stackoverflow.com/q/4672279/
-function drawLine(a: Point, b: Point): Point[] {
+function drawLine(a: Point, b: Point) {
   const result: Point[] = [];
   const dx = Math.abs(b.x - a.x);
   const dy = Math.abs(b.y - a.y);
@@ -29,7 +29,7 @@ function drawLine(a: Point, b: Point): Point[] {
 
 // Midpoint Circle Algorithm
 // https://rosettacode.org/wiki/Bitmap/Midpoint_circle_algorithm#Python
-function drawCircle(center: Point, radius: number): Point[] {
+function drawCircle(center: Point, radius: number) {
   const result: Point[] = [];
   const { x: x0, y: y0 } = center;
 

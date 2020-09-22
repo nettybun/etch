@@ -30,7 +30,7 @@ const colourPicker = css`
   opacity: 0.5;
 `;
 
-const ColourPicker = (): h.JSX.Element =>
+const ColourPicker = () =>
   <div style='width: 200px;'>
     <div
       style='background-color: red;'

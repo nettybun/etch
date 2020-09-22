@@ -14,7 +14,7 @@ const numberEditable = css`
   }
 `;
 
-const ArrowButton = (attrs: { obs: Observable<number> }): h.JSX.Element => {
+const ArrowButton = (attrs: { obs: Observable<number> }) => {
   return (
     <div class={css`
       display: inline-flex;

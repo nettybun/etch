@@ -1,13 +1,19 @@
 import 'styletakeout.macro';
 
 declare module 'styletakeout.macro' {
+  // Classes defined in injectGlobal
+  const cl: {
+    vspace: string
+    hspace: string
+    text: { [size in 'xs'|'sm'|'md'|'lg'|'xl']: string }
+  };
+
   const decl: {
     pageBackground: string
     bodyBackground: string
 
     colour: typeof colours
     size: typeof sizes
-    snippet: typeof snippets
   };
 
   const colours: {
@@ -49,21 +55,6 @@ declare module 'styletakeout.macro' {
     _48: '12rem'
     _56: '14rem'
     _64: '16rem'
-  };
-
-  const snippets: {
-    text: {
-      xs:    'font-size: 0.75rem;'
-      sm:    'font-size: 0.875rem;'
-      md:    'font-size: 1rem;'
-      lg:    'font-size: 1.125rem;'
-      xl:    'font-size: 1.25rem;'
-      xl_2:  'font-size: 1.5rem;'
-      xl_3:  'font-size: 1.875rem;'
-      xl_4:  'font-size: 2.25rem;'
-      xl_5:  'font-size: 3rem;'
-      xl_6:  'font-size: 4rem;'
-    }
   };
 
   // Numbers can't be property names so prefix with '_'

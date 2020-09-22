@@ -1,6 +1,6 @@
 import { h } from 'sinuous';
-import { css, colours, snippets } from 'styletakeout.macro';
-import { styles } from './styles.js';
+import { css, colours, cl, sizes, decl } from 'styletakeout.macro';
+import { c, styles } from './styles.js';
 import { data } from './data.js';
 import { o } from 'sinuous/observable';
 
@@ -21,14 +21,21 @@ const ClickButton = ({ text, fn }: { text: string, fn: () => unknown }) =>
   <button class={styles.ButtonBlue} type="button" onClick={fn}>{text}</button>;
 
 const Page = () =>
-  <main class={styles.Page}>
-    <section class='v-space' style='width: 400px;'>
+  <main>
+    <section class={c(cl.vspace, css`
+      position: fixed;
+      width: 300px;
+      height: 100%;
+      background: ${decl.pageBackground};
+      border-right: 2px solid ${colours.purple._200};
+      padding: ${sizes._05};
+    `)}>
       <h1 class={css`
         font-weight: 400;
         font-size: 32px;
         line-height: 32px;
       `}>
-        Etch <span class={styles.ForceEmoji}>✏️</span>
+        Etch <span class={c(styles.ForceEmoji, cl.text.sm)}>✏️</span>
       </h1>
       <p>Hover: {hover}</p>
       <p>Last click: {click}</p>
@@ -46,17 +53,19 @@ const Page = () =>
       <ColourPicker/>
     </section>
 
-    <section style='flex: 1;' class='v-space'>
+    <section class={c(cl.vspace, css`
+      padding: 20px;
+      margin-left: 300px;
+    `)}>
       <TilesCanvas/>
       <ClickButton text='Export as LZString' fn={() => lzDataText(data.tiles.lzData())}/>
-      <pre class={css`
+      <pre class={c(cl.text.xs, css`
         background: ${colours.gray._200};
         padding: 10px;
 
         white-space: pre-wrap;
         word-wrap: anywhere;
-        ${snippets.text.xs}
-      `}>
+      `)}>
         {lzDataText}
       </pre>
     </section>

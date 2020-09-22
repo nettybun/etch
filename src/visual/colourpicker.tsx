@@ -1,6 +1,7 @@
 import { h } from 'sinuous';
-import { css, colours, snippets } from 'styletakeout.macro';
+import { css, colours, cl } from 'styletakeout.macro';
 import { data } from '../data.js';
+import { c } from '../styles.js';
 
 const { brushColour } = data;
 
@@ -31,14 +32,14 @@ const colourPicker = css`
 `;
 
 const ColourPicker = () =>
-  <div style='width: 200px;'>
+  <div style='width: 150px;'>
     <div
       style='background-color: red;'
       class={css`
         position: relative;
         border: 1px solid grey;
-        width: 200px;
-        height: 200px;
+        width: 150px;
+        height: 150px;
         > div {
           position: absolute;
           top: 0;
@@ -54,11 +55,10 @@ const ColourPicker = () =>
 
     <label
       for='colourInput'
-      class={css`
+      class={c(cl.text.xs, css`
         display: block;
         margin-top: 10px;
-        ${snippets.text.sm}
-      `}>
+      `)}>
       Browser colour picker:
     </label>
     <input

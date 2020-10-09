@@ -1,15 +1,15 @@
-import { h } from 'sinuous';
+import { h } from 'haptic';
+import { s } from 'haptic/s';
 import { css, colours, cl, sizes, decl } from 'styletakeout.macro';
 import { c, styles } from './styles.js';
 import { data } from './data.js';
-import { o } from 'sinuous/observable';
 
 import { TilesCanvas } from './visual/tiles.js';
 import { Palette } from './visual/palette.js';
 import { ArrowButton } from './visual/arrowbutton.js';
 import { ColourPicker } from './visual/colourpicker.js';
 
-const lzDataText = o('');
+const lzDataText = s('');
 
 const {
   click,

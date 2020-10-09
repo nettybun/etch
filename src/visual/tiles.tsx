@@ -1,6 +1,6 @@
-import { h } from 'sinuous';
+import { h } from 'haptic';
 import { data } from '../data.js';
-import { subscribe, sample, computed } from 'sinuous/observable';
+import { subscribe, sample, computed } from 'haptic/s';
 import { debounce, throttle } from '../util.js';
 import { drawLine } from '../drawings.js';
 

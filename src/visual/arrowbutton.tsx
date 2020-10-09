@@ -1,6 +1,7 @@
-import { h, api } from 'sinuous';
+import { h, svg } from 'haptic';
 import { css, sizes } from 'styletakeout.macro';
-import type { Observable } from 'sinuous/observable';
+
+import type { Signal } from 'haptic/s';
 
 const numberEditable = css`
   display: inline-block;
@@ -14,15 +15,14 @@ const numberEditable = css`
   }
 `;
 
-const ArrowButton = (attrs: { obs: Observable<number> }) => {
+const ArrowButton = (attrs: { obs: Signal<number> }) => {
   return (
     <div class={css`
       display: inline-flex;
       flex-direction: column;
       align-items: center;
     `}>
-      {/* TODO: hs: <T extends () => h.JSX.Element>(closure: T) => ReturnType<T>; */}
-      {api.hs(() =>
+      {svg(() =>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="4 4 16 16" stroke="currentColor" width='20px' onClick={() => attrs.obs(attrs.obs() + 1)}>
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7"/>
         </svg>)}
@@ -33,7 +33,7 @@ const ArrowButton = (attrs: { obs: Observable<number> }) => {
         contentEditable>
         {attrs.obs}
       </span>
-      {api.hs(() =>
+      {svg(() =>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="4 4 16 16" stroke="currentColor" width='20px' onClick={() => attrs.obs(attrs.obs() - 1)}>
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
         </svg>)}

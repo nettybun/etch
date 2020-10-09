@@ -1,4 +1,4 @@
-import { h } from 'sinuous';
+import { h } from 'haptic';
 import { css, colours, cl } from 'styletakeout.macro';
 import { data } from '../data.js';
 import { c } from '../styles.js';

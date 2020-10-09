@@ -1,4 +1,4 @@
-import { o, computed, on } from 'sinuous/observable';
+import { s, computed, on } from 'haptic/s';
 import LZString from 'lz-string/libs/lz-string.min.js';
 
 const NO_CURSOR = '✖';
@@ -12,13 +12,13 @@ const DEFAULT_PALETTE = [
   '#71a7ff', '#9583ff', '#ff95ff',
 ];
 
-const tileCountX = o(DEFAULT_TILE_COUNT_X);
-const tileCountY = o(DEFAULT_TILE_COUNT_Y);
-const tileSizePx = o(DEFAULT_TILE_SIZE_PX);
+const tileCountX = s(DEFAULT_TILE_COUNT_X);
+const tileCountY = s(DEFAULT_TILE_COUNT_Y);
+const tileSizePx = s(DEFAULT_TILE_SIZE_PX);
 
 // Colours
-const palette = o(DEFAULT_PALETTE);
-const brushColour = o(DEFAULT_PALETTE[0]);
+const palette = s(DEFAULT_PALETTE);
+const brushColour = s(DEFAULT_PALETTE[0]);
 
 on([brushColour], () => {
   const value = brushColour();
@@ -27,7 +27,7 @@ on([brushColour], () => {
     pals.push(value);
     palette(pals);
   }
-}, null, true);
+}, { onlyChanges: true });
 
 // Tiles
 // Can't use new Array().fill(new Array()) since it's filling a shared object
@@ -39,7 +39,7 @@ const newTiles = (x: number, y: number) => {
 // ReferenceError: Can't access lexical declaration 'tiles' before initialization
 const tilesEmpty = newTiles(tileCountX(), tileCountY());
 for (const row of tilesEmpty) row.fill(BG_COLOUR);
-const tileData = o(tilesEmpty);
+const tileData = s(tilesEmpty);
 
 on([tileCountY, tileCountX], () => {
   console.log('Size change');
@@ -54,11 +54,11 @@ on([tileCountY, tileCountX], () => {
           ? current[y][x]
           : BG_COLOUR;
   tileData(tilesNew);
-}, null, true);
+}, { onlyChanges: true });
 
 export const data = {
-  hover: o(NO_CURSOR),
-  click: o(NO_CURSOR),
+  hover: s(NO_CURSOR),
+  click: s(NO_CURSOR),
   tiles: {
     tileData,
     tileCountX,

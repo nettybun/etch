@@ -44,8 +44,20 @@ app.use(async (ctx, next) => {
 });
 
 // Stamp the user _before_ handling websocket upgrades
+app.keys = ['XXX'];
 // @ts-ignore library incorrecly uses Koa<Koa.DefaultState, Koa.DefaultContext>
 app.use(session(app));
+app.use((ctx, next) => {
+  if (ctx.session) {
+    if (ctx.session.created) {
+      debug('koa:sess')(`Existing session: ${ctx.session.created as string}`);
+    } else {
+      debug('koa:sess')('Creating new session');
+      ctx.session.created = (new Date()).toLocaleString();
+    }
+  }
+  return next();
+});
 
 // Receive httpStatus.SWITCHING_PROTOCOLS and bind `ws` to Koa's context
 app.use(async (ctx, next) => {

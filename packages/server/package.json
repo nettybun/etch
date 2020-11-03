@@ -13,7 +13,7 @@
   "type": "module",
   "scripts": {
     "build": "esbuild src/index.ts --outfile=serve/index.js --platform=node",
-    "start": "ts-node-dev src/index.ts"
+    "start": "nodemon --ext 'ts' --watch 'src' --exec 'node --loader ts-node/esm/transpile-only src/index.ts'"
   },
   "dependencies": {
     "debug": "^4.2.0",
@@ -30,7 +30,8 @@
     "@types/koa-session": "^5.10.3",
     "@types/node": "^14.14.6",
     "@types/ws": "^7.2.9",
-    "esbuild": "^0.8.2",
-    "ts-node-dev": "^1.0.0"
+    "esbuild": "^0.8.3",
+    "nodemon": "^2.0.6",
+    "ts-node": "^9.0.0"
   }
 }

@@ -18,7 +18,7 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const CLIENT_SERVE_ROOT = path.resolve(__dirname, '../../client/serve');
 
 // ESM breaks debug somehow? Not sure.
-debug.enable('*');
+debug.enable('koa,ws');
 
 const log = debug('koa');
 const logws = debug('ws');
@@ -69,13 +69,12 @@ app.use(async (ctx, next) => {
 app.use(async (ctx, next) => {
   if (ctx.ws) {
     const ws = await ctx.ws();
-    ws.send(`Hi! ${ctx.request.ip}`);
+    ws.send(`Hello! ${ctx.request.ip}`);
   }
   await next();
 });
 
 app.use(async (ctx) => {
-  log(`In send() block for: ${ctx.path}`);
   await send(ctx, ctx.path, {
     root: CLIENT_SERVE_ROOT,
     index: 'index.html',

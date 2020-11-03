@@ -1,0 +1,46 @@
+{
+  "name": "etch-client",
+  "version": "0.0.0",
+  "description": "Etch collaborative drawing",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@stayknit.ca:etch.git"
+  },
+  "author": "Gen Hames",
+  "main": "index.tsx",
+  "type": "module",
+  "scripts": {
+    "build:ts": "babel src --out-dir serve --extensions \".ts,.tsx\" --source-maps",
+    "build:static": "mkdir -p serve && cp -r ./static/* serve/",
+    "build": "run-p build:*",
+    "install": "npm run snowpack",
+    "serve": "live-server ./serve",
+    "start": "run-p \"build:ts -- --watch\" serve",
+    "snowpack": "mkdir -p serve && snowpack && cp -r ./web_modules serve/"
+  },
+  "snowpack": {
+    "installOptions": {
+      "sourceMap": true,
+      "treeshake": true
+    },
+    "scripts": {
+      "mount:src": "mount src"
+    }
+  },
+  "dependencies": {
+    "haptic": "^0.6.0",
+    "lz-string": "^1.4.4",
+    "styletakeout.macro": "2.0.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.11.6",
+    "@babel/core": "^7.11.6",
+    "@babel/plugin-transform-react-jsx": "^7.10.4",
+    "@babel/plugin-transform-typescript": "^7.11.0",
+    "@snowpack/babel-plugin-package-import": "^1.1.4",
+    "babel-plugin-macros": "^2.8.0",
+    "npm-run-all": "^4.1.5",
+    "snowpack": "^2.14.1"
+  }
+}

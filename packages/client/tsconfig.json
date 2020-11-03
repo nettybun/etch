@@ -5,13 +5,11 @@
     "moduleResolution": "Node",
     "noEmit": true,
     "strict": true,
-    "esModuleInterop": true,
-    "pretty": true,
     "jsx": "preserve",
     "jsxFactory": "h",
     "typeRoots": [
-      "./types",
-      "./node_modules/@types"
+      "src/types",
+      "node_modules/@types"
     ]
   }
 }

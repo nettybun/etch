@@ -4,10 +4,10 @@ import { css, colours, cl, sizes, decl } from 'styletakeout.macro';
 import { c, styles } from './styles.js';
 import { data } from './data.js';
 
-import { TilesCanvas } from './visual/tiles.js';
-import { Palette } from './visual/palette.js';
-import { ArrowButton } from './visual/arrowbutton.js';
-import { ColourPicker } from './visual/colourpicker.js';
+import { TilesCanvas } from './visual/tiles.jsx';
+import { Palette } from './visual/palette.jsx';
+import { ArrowButton } from './visual/arrowbutton.jsx';
+import { ColourPicker } from './visual/colourpicker.jsx';
 
 const lzDataText = s('');
 

@@ -81,7 +81,11 @@
       "parser": "@typescript-eslint/parser",
       "parserOptions": {
         "tsconfigRootDir": "./",
-        "project": "./tsconfig.json"
+        // I don't mind sharing ESLint JSX rules with the server, that's fine
+        "project": [
+          "./packages/client/tsconfig.json",
+          "./packages/server/tsconfig.json"
+        ]
       }
     }
   ],

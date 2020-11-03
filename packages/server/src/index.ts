@@ -1,6 +1,4 @@
 import Koa from 'koa';
-import WebSocket from 'ws';
-
 import http from 'http';
 import httpStatus from 'http-status-codes';
 import os from 'os';
@@ -9,19 +7,20 @@ import debug from 'debug';
 import session from 'koa-session';
 import send from 'koa-send';
 
-import type { DefaultState, DefaultContext, Context, Middleware } from 'koa';
+import { wss } from './websocket.js';
+
+import type { DefaultState, DefaultContext, Context } from 'koa';
+import type WebSocket from 'ws';
 
 const PORT = 3000;
-const HEARTBEAT_MS = 5000;
 // ESM doesn't have __dirname anymore
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const CLIENT_SERVE_ROOT = path.resolve(__dirname, '../../client/serve');
 
 // ESM breaks debug somehow? Not sure.
-debug.enable('koa,ws');
+debug.enable('koa*,ws');
 
 const log = debug('koa');
-const logws = debug('ws');
 
 // Extend Koa's context object, see websocketMiddleware below
 const app = new Koa<DefaultState, DefaultContext & { ws?: () => Promise<WebSocket> }>();
@@ -48,17 +47,17 @@ app.use(async (ctx, next) => {
 // @ts-ignore library incorrecly uses Koa<Koa.DefaultState, Koa.DefaultContext>
 app.use(session(app));
 
-const wss = new WebSocket.Server({
-  noServer: true, // Already have a server to bind to (Koa/HTTP)
-  clientTracking: true, // Provide wss.clients as a Set() of WebSocket instances
-});
 // Receive httpStatus.SWITCHING_PROTOCOLS and bind `ws` to Koa's context
 app.use(async (ctx, next) => {
   const headers = ctx.request.header as { [header: string]: string };
   if (headers.upgrade && headers.upgrade.includes('websocket')) {
     log('Received websocket upgrade request');
     ctx.ws = () => new Promise((resolve) => {
-      wss.handleUpgrade(ctx.req, ctx.request.socket, Buffer.alloc(0), resolve);
+      wss.handleUpgrade(ctx.req, ctx.request.socket, Buffer.alloc(0), ws => {
+        // TODO: Might not have to emit?
+        wss.emit('connection', ws, ctx);
+        resolve(ws);
+      });
       ctx.respond = false;
     });
   }

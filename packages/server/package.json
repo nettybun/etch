@@ -1,0 +1,36 @@
+{
+  "name": "etch-server",
+  "version": "0.0.0",
+  "description": "Etch collaborative drawing",
+  "keywords": [],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@stayknit.ca:etch.git"
+  },
+  "author": "Gen Hames",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.ts --outfile=serve/index.js --platform=node",
+    "start": "ts-node-dev src/index.ts"
+  },
+  "dependencies": {
+    "debug": "^4.2.0",
+    "http-status-codes": "^2.1.4",
+    "koa": "^2.13.0",
+    "koa-send": "^5.0.1",
+    "koa-session": "^6.1.0",
+    "ws": "^7.3.1"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.5",
+    "@types/koa": "^2.11.6",
+    "@types/koa-send": "^4.1.2",
+    "@types/koa-session": "^5.10.3",
+    "@types/node": "^14.14.6",
+    "@types/ws": "^7.2.9",
+    "esbuild": "^0.8.2",
+    "ts-node-dev": "^1.0.0"
+  }
+}

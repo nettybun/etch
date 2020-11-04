@@ -2,8 +2,8 @@ import { s, computed, on } from 'haptic/s';
 import LZString from 'lz-string/libs/lz-string.min.js';
 
 const NO_CURSOR = '✖';
-const DEFAULT_TILE_COUNT_X = 40;
-const DEFAULT_TILE_COUNT_Y = 40;
+const DEFAULT_TILE_COUNT_X = 30;
+const DEFAULT_TILE_COUNT_Y = 30;
 const DEFAULT_TILE_SIZE_PX = 20;
 const BG_COLOUR = '#FFF';
 const DEFAULT_PALETTE = [

@@ -71,4 +71,14 @@ const Page = () =>
     </section>
   </main>;
 
+const ws = new WebSocket(`ws://${window.location.host}`);
+ws.addEventListener('message', ev => {
+  const msg = ev.data as string;
+  console.log('Websocket message', msg);
+  if (msg === 'RELOAD') {
+    const ok = window.confirm('Reload?');
+    if (ok) window.location.reload();
+  }
+});
+
 document.body.appendChild(<Page/>);

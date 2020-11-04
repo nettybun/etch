@@ -15,8 +15,7 @@
     "build:static": "mkdir -p serve && cp -r ./static/* serve/",
     "build": "run-p build:*",
     "install": "npm run snowpack",
-    "serve": "live-server ./serve",
-    "start": "run-p \"build:ts -- --watch\" serve",
+    "start": "npm run build:ts -- --watch",
     "snowpack": "mkdir -p serve && snowpack && cp -r ./web_modules serve/"
   },
   "snowpack": {

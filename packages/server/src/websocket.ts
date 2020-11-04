@@ -1,11 +1,29 @@
 import WebSocket from 'ws';
+import chokidar from 'chokidar';
 import debug from 'debug';
+
+import {
+  CLIENT_SERVE_ROOT,
+  HEARTBEAT_MS,
+  WATCHER_DEBOUNCE_MS
+} from './config.js';
+
+import { debounce } from './util.js';
+
 import type { Context } from 'koa';
+import type { Session } from 'koa-session';
 
-const HEARTBEAT_MS = 5000;
+type StateWS = {
+  session: Session,
+  isAlive: boolean,
+};
 
-const knownWS = new WeakMap<WebSocket, { isAlive: boolean }>();
+const knownWS = new WeakMap<WebSocket, StateWS>();
 const logWS = debug('ws');
+
+// @ts-ignore This isn't published for some reason...
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
+const getIP = (ws: WebSocket): string => ws._socket.remoteAddress;
 
 const wss = new WebSocket.Server({
   noServer: true, // Already have a server to bind to (Koa/HTTP)
@@ -13,12 +31,15 @@ const wss = new WebSocket.Server({
 });
 
 wss.on('connection', (ws: WebSocket, ctx: Context) => {
-  // Mark as alive when created
-  knownWS.set(ws, { isAlive: true });
   const { session } = ctx;
   if (!session || !session.created) {
     throw 'Websocket upgrade request has no session';
   }
+  // Mark as alive when created
+  knownWS.set(ws, {
+    isAlive: true,
+    session,
+  });
   logWS(`Session keys: "${Object.keys(session).join('", "')}"`);
   const created = session.created as string;
 
@@ -29,15 +50,17 @@ wss.on('connection', (ws: WebSocket, ctx: Context) => {
 
   ws.on('message', (message: WebSocket.Data) => {
     const safeMessage = JSON.stringify(message);
-    logWS(safeMessage);
+    logWS(`Msg: ${safeMessage}`);
   });
 
   ws.on('pong', () => {
-    knownWS.set(ws, { isAlive: true });
+    const info = knownWS.get(ws);
+    if (!info) return;
+    info.isAlive = true;
   });
 
   ws.on('close', () => {
-    logWS(`Disconnected: ${created}`);
+    logWS(`Disconnected: ${getIP(ws)}`);
     logWS(`Websocket count: ${wss.clients.size}`);
     // There's a chance this runs _before_ the internal ws.on('close') in wss
     if (wss.clients.size === (wss.clients.has(ws) ? 1 : 0)) {
@@ -53,10 +76,10 @@ wss.on('connection', (ws: WebSocket, ctx: Context) => {
 });
 
 // Send 💓 every 5s to all clients
-const sendPing = (ws: WebSocket) => ws.ping('\uD83D\uDC93\n\n');
 let broadcastInterval: NodeJS.Timeout;
+const sendPing = (ws: WebSocket) => ws.ping('\uD83D\uDC93\n\n');
 
-function startHeartbeatBroadcast() {
+const startHeartbeatBroadcast = () => {
   broadcastInterval = setInterval(() => {
     wss.clients.forEach(ws => {
       const info = knownWS.get(ws);
@@ -64,7 +87,7 @@ function startHeartbeatBroadcast() {
         return ws.terminate();
       }
       // Assume not responsive until pong
-      knownWS.set(ws, { isAlive: false });
+      info.isAlive = false;
       if (ws.readyState === WebSocket.OPEN) {
         // Ping/Pong might not be appropriate; it ignores other signs of life
         // Also, you can't see pings in browsers since they're not considered
@@ -73,6 +96,23 @@ function startHeartbeatBroadcast() {
       }
     });
   }, HEARTBEAT_MS);
-}
+};
+
+const debouncedReload = debounce(() => {
+  wss.clients.forEach(ws => {
+    logWS(`Reloading ${getIP(ws)}`);
+    ws.send('RELOAD');
+  });
+}, WATCHER_DEBOUNCE_MS);
+
+const watcher = chokidar.watch(CLIENT_SERVE_ROOT, {
+  ignoreInitial: true,
+  persistent: true,
+  disableGlobbing: true,
+});
+watcher.on('all', (event, path) => {
+  logWS(`WATCHER: ${event}: ${path}`);
+  debouncedReload();
+});
 
 export { wss };

@@ -8,17 +8,13 @@ import session from 'koa-session';
 import send from 'koa-send';
 
 import { wss } from './websocket.js';
+import { CLIENT_SERVE_ROOT, PORT } from './config.js';
 
 import type { DefaultState, DefaultContext, Context } from 'koa';
 import type WebSocket from 'ws';
 
-const PORT = 3000;
-// ESM doesn't have __dirname anymore
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
-const CLIENT_SERVE_ROOT = path.resolve(__dirname, '../../client/serve');
-
 // ESM breaks debug somehow? Not sure.
-debug.enable('koa*,ws');
+debug.enable('koa,koa:*,ws,ws:*');
 
 const log = debug('koa');
 

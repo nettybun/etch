@@ -14,9 +14,10 @@ import { debounce } from './util.js';
 import type { Context } from 'koa';
 import type { Session } from 'koa-session';
 import type {
-  ServerBroadcastMessage,
-  ClientBroadcastMessage,
-  RequestResponseCall
+  ServerBroadcastedMsg,
+  ClientBroadcastedMsg,
+  ClientSentMsg,
+  ServerSentMsg
 } from '../../shared/messages.js';
 
 // TODO: Is the socket the session?... Opening multiple tabs should yield
@@ -26,10 +27,8 @@ type StateWS = {
   isAlive: boolean,
 };
 
-type SendableMessage = ClientBroadcastMessage & RequestResponseCall;
-type ReceivableMessage = ServerBroadcastMessage & RequestResponseCall;
-
-type RM<T extends keyof ReceivableMessage> = { type: T } & ReceivableMessage[T];
+type ReceivableMessage = ClientBroadcastedMsg | ClientSentMsg;
+type SendableMessage = ServerBroadcastedMsg | ClientBroadcastedMsg | ServerSentMsg | typeof HEARTBEAT_MESSAGE;
 
 const knownWS = new WeakMap<WebSocket, StateWS>();
 const logWS = debug('ws');
@@ -43,26 +42,30 @@ const wss = new WebSocket.Server({
   clientTracking: true, // Provide wss.clients as a Set() of WebSocket instances
 });
 
-const sendMessage = <T extends keyof SendableMessage>(
-  ws: WebSocket,
-  type: T,
-  payload: SendableMessage[T]
-): void => {
-  // Send to server
+const sendMessage = (msg: SendableMessage, ws: WebSocket) => {
+  if (ws.readyState === WebSocket.OPEN) ws.send(msg);
 };
 
-const receiveMessage = (payload: unknown): void => {
-  type Obj = { [k: string]: unknown };
-  if (!payload || !(payload as Obj).type) {
-    logWS(`Wrong message format: "${JSON.stringify(payload)}"`);
-    return;
-  }
-  const messageType = (payload as Obj).type as keyof ReceivableMessage;
-  const messageData = payload as RM<typeof messageType>;
-  switch (messageType) {
-    case 'app/init': {
-      // messageData; No typing yet...
-      return;
+const receiveMessage = (msg: ReceivableMessage, ws: WebSocket) => {
+  switch (msg.type) {
+    // Personal messages
+    case 'app/init':
+    case 'app/error': {
+      logWS(msg);
+      // TODO: Set into session?
+      break;
+    }
+    // Broadcast messages to all other clients
+    case 'app/crdtPush':
+    case 'canvas/resize':
+    case 'canvas/drawLine':
+    case 'canvas/drawCircle':
+    case 'canvas/drawSquare':
+    case 'canvas/drawPixelArea': {
+      wss.clients.forEach(currWS => {
+        if (currWS !== ws) sendMessage(msg, currWS);
+      });
+      break;
     }
   }
 };
@@ -73,10 +76,7 @@ wss.on('connection', (ws: WebSocket, ctx: Context) => {
     throw 'Websocket upgrade request has no session';
   }
   // Mark as alive when created
-  knownWS.set(ws, {
-    isAlive: true,
-    session,
-  });
+  knownWS.set(ws, { isAlive: true, session });
   logWS(`Session keys: "${Object.keys(session).join('", "')}"`);
   const created = session.created as string;
 
@@ -91,8 +91,12 @@ wss.on('connection', (ws: WebSocket, ctx: Context) => {
       if (!info) return;
       info.isAlive = true;
     } else {
-      const msg = JSON.parse(message.toString()) as object;
-      receiveMessage(msg);
+      const msg = JSON.parse(message.toString()) as unknown;
+      if (!msg || !(msg as { [k: string]: string }).type) {
+        logWS(`Wrong message format ${JSON.stringify(msg)}`);
+        return;
+      }
+      receiveMessage(msg as ReceivableMessage, ws);
     }
   });
 
@@ -118,15 +122,14 @@ const Heartbeat = {
     this.broadcastInterval = setInterval(() => {
       wss.clients.forEach(ws => {
         const info = knownWS.get(ws);
-        // TODO: Implement a counter for retries before we terminate?
         if (!info || info.isAlive === false) {
-          return ws.terminate();
+          // TODO: Implement a counter for retries before we terminate?
+          ws.terminate();
+          return;
         }
-        // Assume not responsive until server hears back
+        // Assume not responsive until server hears back in `.on('message)`
         info.isAlive = false;
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(HEARTBEAT_MESSAGE);
-        }
+        sendMessage(HEARTBEAT_MESSAGE, ws);
       });
     }, HEARTBEAT_MS);
   },
@@ -138,7 +141,7 @@ const Heartbeat = {
 const debouncedReload = debounce(() => {
   wss.clients.forEach(ws => {
     logWS(`Reloading ${getIP(ws)}`);
-    ws.send('RELOAD');
+    sendMessage({ type: 'app/reload' }, ws);
   });
 }, WATCHER_DEBOUNCE_MS);
 

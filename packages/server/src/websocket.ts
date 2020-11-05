@@ -5,6 +5,7 @@ import debug from 'debug';
 import {
   CLIENT_SERVE_ROOT,
   HEARTBEAT_MS,
+  HEARTBEAT_MESSAGE,
   WATCHER_DEBOUNCE_MS
 } from './config.js';
 
@@ -12,11 +13,23 @@ import { debounce } from './util.js';
 
 import type { Context } from 'koa';
 import type { Session } from 'koa-session';
+import type {
+  ServerBroadcastMessage,
+  ClientBroadcastMessage,
+  RequestResponseCall
+} from '../../shared/messages.js';
 
+// TODO: Is the socket the session?... Opening multiple tabs should yield
+// multiple independent drawers. That's not a session (which is cookie based)
 type StateWS = {
   session: Session,
   isAlive: boolean,
 };
+
+type SendableMessage = ClientBroadcastMessage & RequestResponseCall;
+type ReceivableMessage = ServerBroadcastMessage & RequestResponseCall;
+
+type RM<T extends keyof ReceivableMessage> = { type: T } & ReceivableMessage[T];
 
 const knownWS = new WeakMap<WebSocket, StateWS>();
 const logWS = debug('ws');
@@ -29,6 +42,30 @@ const wss = new WebSocket.Server({
   noServer: true, // Already have a server to bind to (Koa/HTTP)
   clientTracking: true, // Provide wss.clients as a Set() of WebSocket instances
 });
+
+const sendMessage = <T extends keyof SendableMessage>(
+  ws: WebSocket,
+  type: T,
+  payload: SendableMessage[T]
+): void => {
+  // Send to server
+};
+
+const receiveMessage = (payload: unknown): void => {
+  type Obj = { [k: string]: unknown };
+  if (!payload || !(payload as Obj).type) {
+    logWS(`Wrong message format: "${JSON.stringify(payload)}"`);
+    return;
+  }
+  const messageType = (payload as Obj).type as keyof ReceivableMessage;
+  const messageData = payload as RM<typeof messageType>;
+  switch (messageType) {
+    case 'app/init': {
+      // messageData; No typing yet...
+      return;
+    }
+  }
+};
 
 wss.on('connection', (ws: WebSocket, ctx: Context) => {
   const { session } = ctx;
@@ -45,18 +82,18 @@ wss.on('connection', (ws: WebSocket, ctx: Context) => {
 
   if (wss.clients.size === 1) {
     logWS('First connection, starting broadcast loop');
-    startHeartbeatBroadcast();
+    Heartbeat.start();
   }
 
   ws.on('message', (message: WebSocket.Data) => {
-    const safeMessage = JSON.stringify(message);
-    logWS(`Msg: ${safeMessage}`);
-  });
-
-  ws.on('pong', () => {
-    const info = knownWS.get(ws);
-    if (!info) return;
-    info.isAlive = true;
+    if (message === HEARTBEAT_MESSAGE) {
+      const info = knownWS.get(ws);
+      if (!info) return;
+      info.isAlive = true;
+    } else {
+      const msg = JSON.parse(message.toString()) as object;
+      receiveMessage(msg);
+    }
   });
 
   ws.on('close', () => {
@@ -65,37 +102,37 @@ wss.on('connection', (ws: WebSocket, ctx: Context) => {
     // There's a chance this runs _before_ the internal ws.on('close') in wss
     if (wss.clients.size === (wss.clients.has(ws) ? 1 : 0)) {
       logWS('Last client disconnected, ending broadcast loop');
-      clearTimeout(broadcastInterval);
+      Heartbeat.stop();
     }
   });
 
-  // Sign of life
-  const { ip } = ctx;
-  logWS(`New websocket: ${created} at IP ${ip}`);
+  logWS(`New websocket: ${created} at IP ${ctx.ip}`);
   logWS(`Websocket count: ${wss.clients.size}`);
 });
 
-// Send 💓 every 5s to all clients
-let broadcastInterval: NodeJS.Timeout;
-const sendPing = (ws: WebSocket) => ws.ping('\uD83D\uDC93\n\n');
-
-const startHeartbeatBroadcast = () => {
-  broadcastInterval = setInterval(() => {
-    wss.clients.forEach(ws => {
-      const info = knownWS.get(ws);
-      if (!info || info.isAlive === false) {
-        return ws.terminate();
-      }
-      // Assume not responsive until pong
-      info.isAlive = false;
-      if (ws.readyState === WebSocket.OPEN) {
-        // Ping/Pong might not be appropriate; it ignores other signs of life
-        // Also, you can't see pings in browsers since they're not considered
-        // real messages; they're lower level than that
-        sendPing(ws);
-      }
-    });
-  }, HEARTBEAT_MS);
+// Send 💓 to all clients to know if they're online
+const Heartbeat = {
+  broadcastInterval: {} as NodeJS.Timeout,
+  start() {
+    clearTimeout(this.broadcastInterval);
+    this.broadcastInterval = setInterval(() => {
+      wss.clients.forEach(ws => {
+        const info = knownWS.get(ws);
+        // TODO: Implement a counter for retries before we terminate?
+        if (!info || info.isAlive === false) {
+          return ws.terminate();
+        }
+        // Assume not responsive until server hears back
+        info.isAlive = false;
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(HEARTBEAT_MESSAGE);
+        }
+      });
+    }, HEARTBEAT_MS);
+  },
+  stop() {
+    clearTimeout(this.broadcastInterval);
+  },
 };
 
 const debouncedReload = debounce(() => {

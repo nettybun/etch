@@ -25,6 +25,8 @@ const data = {
   brushColour: s(DEFAULT_PALETTE[0]),
   // Websocket
   wsMessages:  s([] as string[]),
+  // Shapes
+  drawMode:    'LINE' as 'LINE' | 'STRAIGHT' | 'CIRCLE',
 };
 
 subscribe(() => {
@@ -47,14 +49,8 @@ const genTiles = (x: number, y: number) => {
 data.tileData = genTiles(data.tileCountX(), data.tileCountY());
 for (const row of data.tileData) row.fill(BG_COLOUR);
 
-// XXX:Haptic on() isn't working?
-let init = true;
-subscribe(() => {
+on([data.tileCountX, data.tileCountY], () => {
   const [cX, cY] = [data.tileCountX(), data.tileCountY()];
-  if (init) {
-    init = false;
-    return;
-  }
   console.log('Size change');
 
   sendMessage({
@@ -72,7 +68,7 @@ subscribe(() => {
           ? data.tileData[y][x]
           : BG_COLOUR;
   data.tileData = tilesNew;
-});
+}, { onlyChanges: true });
 
 // @ts-ignore
 window.data = data;

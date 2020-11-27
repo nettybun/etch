@@ -3,7 +3,7 @@ import { TileXY } from './types/etch.js';
 
 // Bresenham's Line Algorithm
 // https://stackoverflow.com/q/4672279/
-function drawLine(a: TileXY, b: TileXY) {
+function genLineXY(a: TileXY, b: TileXY) {
   let [aX, aY] = a;
   let [bX, bY] = b;
   const result: TileXY[] = [];
@@ -31,7 +31,7 @@ function drawLine(a: TileXY, b: TileXY) {
 
 // Midpoint Circle Algorithm
 // https://rosettacode.org/wiki/Bitmap/Midpoint_circle_algorithm#Python
-function drawCircle(center: TileXY, radius: number) {
+function genCircleXY(center: TileXY, radius: number) {
   const result: TileXY[] = [];
   const [x0, y0] = center;
 
@@ -69,4 +69,4 @@ function drawCircle(center: TileXY, radius: number) {
   return result;
 }
 
-export { drawLine, drawCircle };
+export { genLineXY, genCircleXY };

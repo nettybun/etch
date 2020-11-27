@@ -1,7 +1,7 @@
 import { s, sample, transaction } from 'haptic/s';
 import { data } from './data.js';
 import { queueTileDraw } from './rAF.js';
-import { drawLine } from './drawings.js';
+import { genLineXY } from './drawings.js';
 
 import type { TileXY } from './types/etch.js';
 import type {
@@ -101,7 +101,7 @@ const handleReceivedMessage = (msg: ReceivableMessage) => {
       break;
     }
     case 'canvas/drawLine': {
-      drawLine(msg.xyA, msg.xyB).forEach((xy: TileXY) => {
+      genLineXY(msg.xyA, msg.xyB).forEach((xy: TileXY) => {
         queueTileDraw(xy, msg.colour);
       });
       break;

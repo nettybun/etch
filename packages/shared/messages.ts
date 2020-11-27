@@ -1,5 +1,5 @@
 // Copied from client/src/types/etch.ts
-type TileXY = { x: number, y: number }
+type TileXY = [x: number, y: number]
 
 // Created by the server (only) and broadcast to all clients
 export type ServerClientBroadcast =

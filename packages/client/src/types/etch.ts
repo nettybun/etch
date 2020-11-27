@@ -1,2 +1,2 @@
-export type TileXY = { x: number, y: number }
-export type TileDrawCallback = (x: number, y: number) => void;
+export type TileXY = [x: number, y: number]
+export type TileDrawCallback = (xy: TileXY) => void;

@@ -55,8 +55,8 @@ const TilesCanvas = () => {
     ctx.closePath();
   };
 
-  registerTileDrawCallback((x, y) => {
-    drawCanvasTile(x, y, data.tileSizePx(), data.tileData[x][y]);
+  registerTileDrawCallback(([x, y]) => {
+    drawCanvasTile(x, y, data.tileSizePx(), data.tileData[y][x]);
   });
 
   // Event handling
@@ -67,7 +67,7 @@ const TilesCanvas = () => {
     const size = data.tileSizePx();
     const x = Math.floor(ev.offsetX / size);
     const y = Math.floor(ev.offsetY / size);
-    return { x, y } as TileXY;
+    return [x, y] as TileXY;
   };
 
   canvas.addEventListener('mousedown', ev => {
@@ -79,12 +79,14 @@ const TilesCanvas = () => {
 
     const c = evToTileXY(ev);
     queueTileDraw(c, data.brushColour());
-    data.click(`(${c.x}, ${c.y})`);
+    const [x, y] = c;
+    data.click(`(${x}, ${y})`);
   });
 
   canvas.addEventListener('mousemove', ev => {
     const c = evToTileXY(ev);
-    hoverThrottled(`(${ev.offsetX}, ${ev.offsetY}) ➡ (${c.x}, ${c.y})`);
+    const [x, y] = c;
+    hoverThrottled(`(${ev.offsetX}, ${ev.offsetY}) ➡ (${x}, ${y})`);
     if (typeof brushDown !== 'undefined') {
       // Browsers throttle mousemove. Quickly moving a mouse across an entire
       // screen in ~0.5s returns maybe 5 readings. This fills in the gaps...

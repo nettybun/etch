@@ -1,27 +1,29 @@
 import { TileXY } from './types/etch.js';
+/* eslint-disable prefer-const, no-constant-condition*/
 
 // Bresenham's Line Algorithm
 // https://stackoverflow.com/q/4672279/
 function drawLine(a: TileXY, b: TileXY) {
+  let [aX, aY] = a;
+  let [bX, bY] = b;
   const result: TileXY[] = [];
-  const dx = Math.abs(b.x - a.x);
-  const dy = Math.abs(b.y - a.y);
-  const sx = (a.x < b.x) ? 1 : -1;
-  const sy = (a.y < b.y) ? 1 : -1;
+  const dx = Math.abs(bX - aX);
+  const dy = Math.abs(bY - aY);
+  const sx = (aX < bX) ? 1 : -1;
+  const sy = (aY < bY) ? 1 : -1;
   let err = dx - dy;
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     // Copy the point instead of passing by reference
-    result.push({ x: a.x, y: a.y });
-    if ((a.x === b.x) && (a.y === b.y)) {
+    result.push([aX, aY]);
+    if ((aX === bX) && (aY === bY)) {
       break;
     }
     const e2 = 2 * err;
     if (e2 > -dy) {
-      err -= dy; a.x += sx;
+      err -= dy; aX += sx;
     }
     if (e2 < dx) {
-      err += dx; a.y += sy;
+      err += dx; aY += sy;
     }
   }
   return result;
@@ -31,7 +33,7 @@ function drawLine(a: TileXY, b: TileXY) {
 // https://rosettacode.org/wiki/Bitmap/Midpoint_circle_algorithm#Python
 function drawCircle(center: TileXY, radius: number) {
   const result: TileXY[] = [];
-  const { x: x0, y: y0 } = center;
+  const [x0, y0] = center;
 
   let f = 1 - radius;
   let ddf_x = 1;
@@ -39,10 +41,10 @@ function drawCircle(center: TileXY, radius: number) {
   let x = 0;
   let y = radius;
   result.push(
-    { x: x0, y: y0 + radius },
-    { x: x0, y: y0 - radius },
-    { x: x0 + radius, y: y0 },
-    { x: x0 - radius, y: y0 }
+    [x0, y0 + radius],
+    [x0, y0 - radius],
+    [x0 + radius, y0],
+    [x0 - radius, y0]
   );
   while (x < y) {
     if (f >= 0) {
@@ -54,14 +56,14 @@ function drawCircle(center: TileXY, radius: number) {
     ddf_x += 2;
     f += ddf_x;
     result.push(
-      { x: x0 + x, y: y0 + y },
-      { x: x0 - x, y: y0 + y },
-      { x: x0 + x, y: y0 - y },
-      { x: x0 - x, y: y0 - y },
-      { x: x0 + y, y: y0 + x },
-      { x: x0 - y, y: y0 + x },
-      { x: x0 + y, y: y0 - x },
-      { x: x0 - y, y: y0 - x }
+      [x0 + x, y0 + y],
+      [x0 - x, y0 + y],
+      [x0 + x, y0 - y],
+      [x0 - x, y0 - y],
+      [x0 + y, y0 + x],
+      [x0 - y, y0 + x],
+      [x0 + y, y0 - x],
+      [x0 - y, y0 - x]
     );
   }
   return result;

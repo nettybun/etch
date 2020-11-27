@@ -6,7 +6,7 @@ let rAFTilesToDraw: TileXY[] = [];
 let rAFDrawScheduled = false;
 
 const queueTileDraw = (tile: TileXY, colour: string) => {
-  const { x, y } = tile;
+  const [x, y] = tile;
   // This happens easily in drawing tools like drawCircle()
   if (x < 0 || y < 0 || x > data.tileCountX() || y > data.tileCountY()) {
     return;
@@ -25,7 +25,7 @@ const queueTileDraw = (tile: TileXY, colour: string) => {
         for (const c of rAFTilesToDraw) {
           // The drawer, whoever it is (DOM/Canvas/WebGL etc) will get the
           // colour and sizing information themselves
-          callback(c.x, c.y);
+          callback(c);
         }
       }
       rAFTilesToDraw = [];

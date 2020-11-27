@@ -25,6 +25,7 @@ const wsAddMessage = (msg: unknown) => {
 };
 
 let ws: WebSocket | undefined = undefined;
+let wsIgnoreSend = false;
 
 const openWS = () => {
   ws = new WebSocket(`ws://${window.location.host}`);
@@ -60,6 +61,9 @@ const closeWS = () => {
 };
 
 const sendMessage = (msg: SendableMessage) => {
+  if (wsIgnoreSend) {
+    return;
+  }
   const value = JSON.stringify(msg);
   if (!ws) {
     wsAddMessage(`❌ WS closed; can't send ${value}`);
@@ -74,10 +78,13 @@ const handleReceivedMessage = (msg: ReceivableMessage) => {
     sendMessage(HEARTBEAT_MESSAGE);
     return;
   }
+  // This is a sort of mutex to prevent resize events from looping between
+  // clients that keep resending them
+  wsIgnoreSend = true;
   switch (msg.type) {
     case 'app/reload': {
-      const confirmation = window.confirm('New client available .Reload?');
-      if (confirmation) window.location.reload();
+      // const confirmation = window.confirm('New client available .Reload?');
+      window.location.reload();
       break;
     }
     case 'app/userPresence': {
@@ -103,6 +110,7 @@ const handleReceivedMessage = (msg: ReceivableMessage) => {
       wsAddMessage(`☠ Didn't understand message: "${String(msg)}"`);
       break;
   }
+  wsIgnoreSend = false;
 };
 
 // Only do this once as a side effect (sorry not sorry)

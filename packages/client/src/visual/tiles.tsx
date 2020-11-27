@@ -101,6 +101,8 @@ const TilesCanvas = () => {
         xyB: c,
         colour,
       });
+      // Move along the line in chunks
+      brushDown = c;
     }
   });
 

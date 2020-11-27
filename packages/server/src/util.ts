@@ -4,11 +4,12 @@ function debounce<T extends Func>(
   call: T,
   ms: number,
   options: { immediate: boolean } = { immediate: false }
-): (this: ThisParameterType<T>, ...args: Parameters<T>) => void {
+): T {
   let timeoutId: ReturnType<typeof setTimeout> | null;
-  return function(...args) {
+  function retCall(...args: Parameters<T>) {
     const later = () => {
       timeoutId = null;
+      // @ts-ignore
       // eslint-disable-next-line no-invalid-this
       if (!options.immediate) call.apply(this, args);
     };
@@ -18,10 +19,12 @@ function debounce<T extends Func>(
     }
     timeoutId = setTimeout(later, ms);
     if (callNow) {
+      // @ts-ignore
       // eslint-disable-next-line no-invalid-this
       call.apply(this, args);
     }
-  };
+  }
+  return retCall as T;
 }
 
 export { debounce };

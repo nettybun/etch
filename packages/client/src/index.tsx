@@ -3,6 +3,7 @@ import { css, colours, cl, sizes, decl } from 'styletakeout.macro';
 import { c, styles } from './styles.js';
 import { data } from './data.js';
 import { openWS, closeWS } from './websocket.js';
+import { addKeyboardEventListeners } from './keypress.js';
 
 import { TilesCanvas } from './visual/tiles.js';
 import { Palette } from './visual/palette.js';
@@ -76,3 +77,4 @@ const Page = () =>
 
 document.body.appendChild(<Page/>);
 openWS();
+addKeyboardEventListeners();

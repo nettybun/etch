@@ -14,21 +14,19 @@ import { debounce } from './util.js';
 import type { Context } from 'koa';
 import type { Session } from 'koa-session';
 import type {
-  ServerBroadcastedMsg,
-  ClientBroadcastedMsg,
-  ClientSentMsg,
-  ServerSentMsg
+  ServerClientBroadcast,
+  ClientClientBroadcast,
+  ClientServerDM,
+  ServerClientDM
 } from '../../shared/messages.js';
 
-// TODO: Is the socket the session?... Opening multiple tabs should yield
-// multiple independent drawers. That's not a session (which is cookie based)
 type StateWS = {
   session: Session,
   isAlive: boolean,
 };
 
-type ReceivableMessage = ClientBroadcastedMsg | ClientSentMsg;
-type SendableMessage = ServerBroadcastedMsg | ClientBroadcastedMsg | ServerSentMsg | typeof HEARTBEAT_MESSAGE;
+type ReceivableMessage = ClientClientBroadcast | ClientServerDM;
+type SendableMessage = ServerClientBroadcast | ClientClientBroadcast | ServerClientDM | typeof HEARTBEAT_MESSAGE;
 
 const knownWS = new WeakMap<WebSocket, StateWS>();
 const logWS = debug('ws');
@@ -43,7 +41,9 @@ const wss = new WebSocket.Server({
 });
 
 const sendMessage = (msg: SendableMessage, ws: WebSocket) => {
-  if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(msg));
+  }
 };
 
 const receiveMessage = (msg: ReceivableMessage, ws: WebSocket) => {
@@ -56,7 +56,6 @@ const receiveMessage = (msg: ReceivableMessage, ws: WebSocket) => {
       break;
     }
     // Broadcast messages to all other clients
-    case 'app/crdtPush':
     case 'canvas/resize':
     case 'canvas/drawLine':
     case 'canvas/drawCircle':
@@ -86,18 +85,18 @@ wss.on('connection', (ws: WebSocket, ctx: Context) => {
   }
 
   ws.on('message', (message: WebSocket.Data) => {
-    if (message === HEARTBEAT_MESSAGE) {
+    const msg = JSON.parse(message.toString()) as unknown;
+    if (msg === HEARTBEAT_MESSAGE) {
       const info = knownWS.get(ws);
       if (!info) return;
       info.isAlive = true;
-    } else {
-      const msg = JSON.parse(message.toString()) as unknown;
-      if (!msg || !(msg as { [k: string]: string }).type) {
-        logWS(`Wrong message format ${JSON.stringify(msg)}`);
-        return;
-      }
-      receiveMessage(msg as ReceivableMessage, ws);
+      return;
     }
+    if (!msg || !(msg as { [k: string]: string }).type) {
+      logWS(`Wrong message format ${JSON.stringify(msg)}`);
+      return;
+    }
+    receiveMessage(msg as ReceivableMessage, ws);
   });
 
   ws.on('close', () => {

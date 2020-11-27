@@ -8,6 +8,7 @@ import session from 'koa-session';
 import send from 'koa-send';
 
 import { wss } from './websocket.js';
+import { debounce } from './util.js';
 import { CLIENT_SERVE_ROOT, PORT } from './config.js';
 
 import type { DefaultState, DefaultContext, Context } from 'koa';
@@ -21,15 +22,12 @@ const log = debug('koa');
 // Extend Koa's context object, see websocketMiddleware below
 const app = new Koa<DefaultState, DefaultContext & { ws?: () => Promise<WebSocket> }>();
 
-// TODO: Optionally add an error handling middleware here via try/catch
-// Apparently Koa's default is fine though https://stackoverflow.com/q/49228366
-
 // Logger
-app.use(async (ctx: Context, next) => {
-  await next();
-  const rt = ctx.response.get('X-Response-Time');
-  log(`${ctx.method} ${ctx.url} - ${rt}`);
-});
+// app.use(async (ctx: Context, next) => {
+//   await next();
+//   const rt = ctx.response.get('X-Response-Time');
+//   log(`${ctx.method} ${ctx.url} - ${rt}`);
+// });
 
 // Set X-Response-Time
 app.use(async (ctx, next) => {
@@ -43,12 +41,17 @@ app.use(async (ctx, next) => {
 app.keys = ['XXX'];
 // @ts-ignore library incorrecly uses Koa<Koa.DefaultState, Koa.DefaultContext>
 app.use(session(app));
+
+const sessLogSlow = debounce((msg) => {
+  debug('koa:sess')(msg);
+}, 1000, { immediate: true });
+
 app.use((ctx, next) => {
   if (ctx.session) {
     if (ctx.session.created) {
-      debug('koa:sess')(`Existing session: ${ctx.session.created as string}`);
+      sessLogSlow(`Existing session: ${ctx.session.created as string}`);
     } else {
-      debug('koa:sess')('Creating new session');
+      sessLogSlow('Creating new session');
       ctx.session.created = (new Date()).toLocaleString();
     }
   }

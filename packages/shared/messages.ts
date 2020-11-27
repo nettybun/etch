@@ -1,6 +1,8 @@
+// Copied from client/src/types/etch.ts
+type TileXY = { x: number, y: number }
 
 // Created by the server (only) and broadcast to all clients
-export type ServerBroadcastedMsg =
+export type ServerClientBroadcast =
   | {
     type: 'app/reload'
   }
@@ -11,7 +13,7 @@ export type ServerBroadcastedMsg =
   }
 
 // Created by client and then broadcast to other clients via server
-export type ClientBroadcastedMsg =
+export type ClientClientBroadcast =
   | {
     type: 'canvas/resize'
     x: number
@@ -20,8 +22,8 @@ export type ClientBroadcastedMsg =
   | {
     type: 'canvas/drawLine'
     colour: string
-    xyA: [number, number],
-    xyB: [number, number],
+    xyA: TileXY,
+    xyB: TileXY,
   }
   | {
     type: 'canvas/drawCircle' // TODO: Ellipse later
@@ -39,38 +41,17 @@ export type ClientBroadcastedMsg =
     type: 'canvas/drawPixelArea'
     // Top left to bottom right, where length matches region size
     pixels: string[]
-    xyA: [number, number],
-    xyB: [number, number],
+    xyA: TileXY,
+    xyB: TileXY,
   }
 
 // These are not broadcast and are instead direct actions on the server
-export type ClientSentMsg =
+export type ClientServerDM =
   | {
     type: 'app/init'
     // Commit hash? Or JS build? I need to do sourcemap unwinding to find the
     // source code error location in app/error...
     version: string
-  }
-  | {
-    type: 'app/crdtSave'
-    // The entire CRDT?
-    data: string
-  }
-  | {
-    type: 'app/crdtPush'
-    // The new data?
-    data: string
-  }
-  | {
-    type: 'app/crdtSubscribe'
-    id: string
-  }
-  | {
-    // Different than just closing the tab (i.e disconnecting)
-    // Broadcast? Or does the server send app/userPresence instead?
-    // No, that means "forward the message" which is bad here
-    type: 'app/crdtUnsubscribe'
-    id: string
   }
   | {
     // Literally a JS error
@@ -80,7 +61,7 @@ export type ClientSentMsg =
     stack: string
   }
 
-export type ServerSentMsg =
+export type ServerClientDM =
   | {
     type: 'app/crdtPush'
     // ??

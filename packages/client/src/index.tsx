@@ -1,20 +1,20 @@
 import { h } from 'haptic';
-import { s } from 'haptic/s';
 import { css, colours, cl, sizes, decl } from 'styletakeout.macro';
 import { c, styles } from './styles.js';
 import { data } from './data.js';
+import { openWS, closeWS } from './websocket.js';
 
 import { TilesCanvas } from './visual/tiles.js';
 import { Palette } from './visual/palette.js';
 import { ArrowButton } from './visual/arrowbutton.js';
 import { ColourPicker } from './visual/colourpicker.js';
 
-const lzDataText = s('');
-
 const {
   click,
   hover,
-  tiles: { tileCountX, tileCountY, tileSizePx },
+  tileCountX,
+  tileCountY,
+  tileSizePx,
 } = data;
 
 const ClickButton = ({ text, fn }: { text: string, fn: () => unknown }) =>
@@ -53,32 +53,26 @@ const Page = () =>
       <ColourPicker/>
     </section>
 
-    <section class={c(cl.vspace, css`
+    <section class={c(cl.hspace, css`
+      display: flex;
       padding: 20px;
       margin-left: 300px;
     `)}>
-      <TilesCanvas/>
-      <ClickButton text='Export as LZString' fn={() => lzDataText(data.tiles.lzData())}/>
-      <pre class={c(cl.text.xs, css`
-        background: ${colours.gray._200};
-        padding: 10px;
-
-        white-space: pre-wrap;
-        word-wrap: anywhere;
-      `)}>
-        {lzDataText}
-      </pre>
+      <div>
+        <TilesCanvas/>
+      </div>
+      <div>
+        <ClickButton text='Open WS' fn={openWS}/>
+        <ClickButton text='Close WS' fn={closeWS}/>
+        <pre class={c(cl.text.xs, css`
+          background: ${colours.gray._100};
+          padding: 10px;
+        `)}>
+          {() => data.wsMessages().join('\n')}
+        </pre>
+      </div>
     </section>
   </main>;
 
-const ws = new WebSocket(`ws://${window.location.host}`);
-ws.addEventListener('message', ev => {
-  const msg = ev.data as string;
-  console.log('Websocket message', msg);
-  if (msg === 'RELOAD') {
-    const ok = window.confirm('Reload?');
-    if (ok) window.location.reload();
-  }
-});
-
 document.body.appendChild(<Page/>);
+openWS();

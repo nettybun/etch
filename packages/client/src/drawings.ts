@@ -1,9 +1,9 @@
-import { Point } from './types/etch.js';
+import { TileXY } from './types/etch.js';
 
 // Bresenham's Line Algorithm
 // https://stackoverflow.com/q/4672279/
-function drawLine(a: Point, b: Point) {
-  const result: Point[] = [];
+function drawLine(a: TileXY, b: TileXY) {
+  const result: TileXY[] = [];
   const dx = Math.abs(b.x - a.x);
   const dy = Math.abs(b.y - a.y);
   const sx = (a.x < b.x) ? 1 : -1;
@@ -29,8 +29,8 @@ function drawLine(a: Point, b: Point) {
 
 // Midpoint Circle Algorithm
 // https://rosettacode.org/wiki/Bitmap/Midpoint_circle_algorithm#Python
-function drawCircle(center: Point, radius: number) {
-  const result: Point[] = [];
+function drawCircle(center: TileXY, radius: number) {
+  const result: TileXY[] = [];
   const { x: x0, y: y0 } = center;
 
   let f = 1 - radius;

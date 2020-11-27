@@ -1,5 +1,5 @@
-import { s, computed, on } from 'haptic/s';
-import LZString from 'lz-string/libs/lz-string.min.js';
+import { s, on, subscribe, sample } from 'haptic/s';
+import { sendMessage } from './websocket.js';
 
 const NO_CURSOR = '✖';
 const DEFAULT_TILE_COUNT_X = 30;
@@ -12,75 +12,69 @@ const DEFAULT_PALETTE = [
   '#71a7ff', '#9583ff', '#ff95ff',
 ];
 
-const tileCountX = s(DEFAULT_TILE_COUNT_X);
-const tileCountY = s(DEFAULT_TILE_COUNT_Y);
-const tileSizePx = s(DEFAULT_TILE_SIZE_PX);
+const data = {
+  hover:       s(NO_CURSOR),
+  click:       s(NO_CURSOR),
+  // Tiles
+  tileData:    [] as string[][],
+  tileCountX:  s(DEFAULT_TILE_COUNT_X),
+  tileCountY:  s(DEFAULT_TILE_COUNT_Y),
+  tileSizePx:  s(DEFAULT_TILE_SIZE_PX),
+  // Colours
+  palette:     s(DEFAULT_PALETTE),
+  brushColour: s(DEFAULT_PALETTE[0]),
+  // Websocket
+  wsMessages:  s([] as string[]),
+};
 
-// Colours
-const palette = s(DEFAULT_PALETTE);
-const brushColour = s(DEFAULT_PALETTE[0]);
-
-on([brushColour], () => {
-  const value = brushColour();
-  const pals = palette();
+subscribe(() => {
+  const value = data.brushColour();
+  const pals = sample(data.palette);
   if (!pals.includes(value)) {
     pals.push(value);
-    palette(pals);
+    data.palette(pals);
   }
-}, { onlyChanges: true });
+});
 
 // Tiles
 // Can't use new Array().fill(new Array()) since it's filling a shared object
-const newTiles = (x: number, y: number) => {
+const genTiles = (x: number, y: number) => {
   const arr = new Array<string[]>(y);
   for (let i = 0; i < y; i++) arr[i] = new Array<string>(x);
   return arr;
 };
 // ReferenceError: Can't access lexical declaration 'tiles' before initialization
-const tilesEmpty = newTiles(tileCountX(), tileCountY());
-for (const row of tilesEmpty) row.fill(BG_COLOUR);
-const tileData = s(tilesEmpty);
+data.tileData = genTiles(data.tileCountX(), data.tileCountY());
+for (const row of data.tileData) row.fill(BG_COLOUR);
 
-on([tileCountY, tileCountX], () => {
+// XXX:Haptic on() isn't working?
+let init = true;
+subscribe(() => {
+  const [cX, cY] = [data.tileCountX(), data.tileCountY()];
+  if (init) {
+    init = false;
+    return;
+  }
   console.log('Size change');
-  const current = tileData();
-  const [cX, cY] = [tileCountX(), tileCountY()];
-  const tilesNew = newTiles(cX, cY);
+
+  sendMessage({
+    type: 'canvas/resize',
+    x: cX,
+    y: cY,
+  });
+
+  const tilesNew = genTiles(cX, cY);
   // Carry-over the current values
   for (let y = 0; y < cY; y++)
     for (let x = 0; x < cX; x++)
       tilesNew[y][x]
-        = (y < current.length && x < current[y].length)
-          ? current[y][x]
+        = (y < data.tileData.length && x < data.tileData[y].length)
+          ? data.tileData[y][x]
           : BG_COLOUR;
-  tileData(tilesNew);
-}, { onlyChanges: true });
-
-export const data = {
-  hover: s(NO_CURSOR),
-  click: s(NO_CURSOR),
-  tiles: {
-    tileData,
-    tileCountX,
-    tileCountY,
-    tileSizePx,
-    lzData() {
-      const encoding = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      const pals = palette();
-      const palMap: { [key in string]: string } = {};
-      for (let i = 0; i < pals.length; i++) palMap[pals[i]] = encoding[i];
-
-      const asFile = {
-        palette: pals,
-        data: tileData().map(row => row.map(text => palMap[text] || '.').join('')).join(','),
-      };
-      const serialized = JSON.stringify(asFile);
-      return `${serialized}\n\n${LZString.compressToEncodedURIComponent(serialized)}`;
-    },
-  },
-  brushColour,
-  palette,
-};
+  data.tileData = tilesNew;
+});
 
 // @ts-ignore
 window.data = data;
+
+export { data };

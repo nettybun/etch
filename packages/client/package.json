@@ -11,35 +11,36 @@
   "main": "index.tsx",
   "type": "module",
   "scripts": {
+    "build:assets": "snowpack install && cp -r ./static/* serve/",
     "build:ts": "babel src --out-dir serve --extensions \".ts,.tsx\" --source-maps",
-    "build:static": "mkdir -p serve && cp -r ./static/* serve/",
-    "build": "run-p build:*",
-    "install": "npm run snowpack",
-    "start": "npm run build:ts -- --watch",
-    "snowpack": "mkdir -p serve && snowpack && cp -r ./web_modules serve/"
+    "build:ts:watch": "npm run build:ts -- --watch",
+    "build": "run-s build:assets build:ts",
+    "start": "run-s build:assets build:ts:watch "
   },
   "snowpack": {
     "installOptions": {
       "sourceMap": true,
-      "treeshake": true
+      "treeshake": true,
+      "dest": "serve/web_modules"
     },
     "scripts": {
       "mount:src": "mount src"
     }
   },
   "dependencies": {
-    "haptic": "^0.6.0",
+    "haptic": "^0.8.0",
     "lz-string": "^1.4.4",
+    "nanoid": "^3.1.18",
     "styletakeout.macro": "2.0.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.11.6",
-    "@babel/core": "^7.11.6",
-    "@babel/plugin-transform-react-jsx": "^7.10.4",
-    "@babel/plugin-transform-typescript": "^7.11.0",
-    "@snowpack/babel-plugin-package-import": "^1.1.4",
-    "babel-plugin-macros": "^2.8.0",
+    "@babel/cli": "^7.12.8",
+    "@babel/core": "^7.12.9",
+    "@babel/plugin-transform-react-jsx": "^7.12.7",
+    "@babel/plugin-transform-typescript": "^7.12.1",
+    "@snowpack/babel-plugin-package-import": "^1.1.5",
+    "babel-plugin-macros": "^3.0.0",
     "npm-run-all": "^4.1.5",
-    "snowpack": "^2.14.1"
+    "snowpack": "^2.17.1"
   }
 }

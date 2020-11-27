@@ -188,7 +188,8 @@
     [
       "@snowpack/babel-plugin-package-import",
       {
-        "webModulesUrl": "/web_modules/"
+        "webModulesUrl": "/web_modules/",
+        "webModulesDir": "./serve/web_modules"
       }
     ]
   ]

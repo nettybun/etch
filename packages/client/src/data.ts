@@ -1,6 +1,8 @@
 import { s, on, subscribe, sample } from 'haptic/s';
 import { sendMessage } from './websocket.js';
 
+type DrawModes = 'LINE' | 'STRAIGHT' // | 'CIRCLE'
+
 const NO_CURSOR = '✖';
 const DEFAULT_TILE_COUNT_X = 30;
 const DEFAULT_TILE_COUNT_Y = 30;
@@ -26,7 +28,7 @@ const data = {
   // Websocket
   wsMessages:  s([] as string[]),
   // Shapes
-  drawMode:    'LINE' as 'LINE' | 'STRAIGHT' | 'CIRCLE',
+  drawMode:    'LINE' as DrawModes,
 };
 
 subscribe(() => {
@@ -73,4 +75,6 @@ on([data.tileCountX, data.tileCountY], () => {
 // @ts-ignore
 window.data = data;
 
+// Types
+export { DrawModes };
 export { data };

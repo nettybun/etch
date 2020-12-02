@@ -3,12 +3,12 @@ import { css, colours, cl, sizes, decl } from 'styletakeout.macro';
 import { c, styles } from './styles.js';
 import { data } from './data.js';
 import { openWS, closeWS } from './websocket.js';
-import { addKeyboardEventListeners } from './keypress.js';
 
 import { TilesCanvas } from './visual/tiles.js';
 import { Palette } from './visual/palette.js';
 import { ArrowButton } from './visual/arrowbutton.js';
 import { ColourPicker } from './visual/colourpicker.js';
+import { Tools } from './visual/tools.js';
 
 const {
   click,
@@ -51,7 +51,8 @@ const Page = () =>
         <ArrowButton obs={tileSizePx}/>px/tile
       </div>
       <Palette/>
-      <ColourPicker/>
+      {/* <ColourPicker/> */}
+      <Tools/>
     </section>
 
     <section class={c(cl.hspace, css`
@@ -77,4 +78,3 @@ const Page = () =>
 
 document.body.appendChild(<Page/>);
 openWS();
-addKeyboardEventListeners();

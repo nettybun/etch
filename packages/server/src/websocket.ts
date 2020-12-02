@@ -150,7 +150,6 @@ const watcher = chokidar.watch(CLIENT_SERVE_ROOT, {
   disableGlobbing: true,
 });
 watcher.on('all', (event, path) => {
-  logWS(`WATCHER: ${event}: ${path}`);
   debouncedReload();
 });
 

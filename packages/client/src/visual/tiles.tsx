@@ -1,16 +1,25 @@
 import { h } from 'haptic';
-import { colours } from 'styletakeout.macro';
-import { data } from '../data.js';
 import { subscribe, computed, on } from 'haptic/s';
+import { colours } from 'styletakeout.macro';
+
+import { data } from '../data.js';
 import { debounce, throttle } from '../util.js';
 import { genCircleXY, genLineXY } from '../drawings.js';
 import { queueTileDraw, registerTileDrawCallback } from '../rAF.js';
+import { sendMessage } from '../websocket.js';
 
 import type { TileXY } from '../types/etch.js';
-import { sendMessage } from '../websocket.js';
+import type { DrawModes } from '../data.js';
 
 // Hard on the eyes if it's too fast...
 const hoverThrottled = throttle(data.hover, 50);
+
+const evToTileXY = (ev: MouseEvent) => {
+  const size = data.tileSizePx();
+  const x = Math.floor(ev.offsetX / size);
+  const y = Math.floor(ev.offsetY / size);
+  return [x, y] as TileXY;
+};
 
 const TilesCanvas = () => {
   const canvas = <canvas/> as HTMLCanvasElement;
@@ -72,104 +81,126 @@ const TilesCanvas = () => {
 
   // Event handling
 
-  const evToTileXY = (ev: MouseEvent) => {
-    const size = data.tileSizePx();
-    const x = Math.floor(ev.offsetX / size);
-    const y = Math.floor(ev.offsetY / size);
-    return [x, y] as TileXY;
-  };
+  let brushDownXY: TileXY | undefined;
+  let cursorXY: Array<{ xy: TileXY, prevColour: string}> = [];
 
-  type DrawModes = typeof data.drawMode;
-  type MouseEvents = 'onMouseDown' | 'onMouseUp' | 'onMouseMove';
+  function clearPrevCursor() {
+    cursorXY.forEach(({ xy, prevColour }) => {
+      queueTileDraw(xy, prevColour);
+    });
+    cursorXY = [];
+  }
 
-  let brushDown: TileXY | undefined;
-
-  // Global between all drawMode options
   canvas.addEventListener('mousedown', ev => {
-    brushDown = evToTileXY(ev);
+    const xy = evToTileXY(ev);
+    brushDownXY = xy;
+    evMouse[data.drawMode].evDown(xy);
   });
   canvas.addEventListener('mouseup', ev => {
-    brushDown = undefined;
-    const [x, y] = evToTileXY(ev);
+    const xy = evToTileXY(ev);
+    evMouse[data.drawMode].evUp(xy);
+    brushDownXY = undefined;
+    const [x, y] = xy;
     data.click(`(${x}, ${y})`);
   });
   canvas.addEventListener('mousemove', ev => {
-    const [x, y] = evToTileXY(ev);
+    const xy = evToTileXY(ev);
+    evMouse[data.drawMode].evMove(xy);
+    const [x, y] = xy;
     hoverThrottled(`(${ev.offsetX}, ${ev.offsetY}) ➡ (${x}, ${y})`);
   });
 
-  // Specific to the drawMode...
+  // Specific event handling for the drawMode
   const evMouse: {
-    [k in DrawModes]:
-      & { [k in MouseEvents]: (ev: MouseEvent) => void }
+    [k in DrawModes]: {
+      [k in 'evDown' | 'evUp' | 'evMove']: (xy: TileXY) => void
+    }
   } = {
     LINE: {
-      onMouseDown(ev) {},
-      onMouseUp(ev) {
-        // TODO: Testing if this is not needed...
-        // const c = evToTileXY(ev);
-        // queueTileDraw(c, data.brushColour());
+      evDown(xy) {
+        queueTileDraw(xy, data.brushColour());
       },
-      onMouseMove(ev) {
-        if (typeof brushDown === 'undefined') return;
-        const c = evToTileXY(ev);
+      evUp(xy) {
+        queueTileDraw(xy, data.brushColour());
+        cursorXY = [];
+      },
+      evMove(xy) {
+        if (!brushDownXY) {
+          clearPrevCursor();
+          const [x, y] = xy;
+          cursorXY.push({ xy, prevColour: data.tileData[y][x] });
+          queueTileDraw(xy, colours.gray._400);
+          return;
+        }
         // Browsers throttle mousemove. Quickly moving a mouse across an entire
         // screen in ~0.5s returns maybe 5 readings. This fills in the gaps...
         const colour = data.brushColour();
-        genLineXY(brushDown, c).forEach((xy: TileXY) => {
-          queueTileDraw(xy, colour);
+        genLineXY(brushDownXY, xy).forEach(xyLoop => {
+          queueTileDraw(xyLoop, colour);
         });
         sendMessage({
           type: 'canvas/drawLine',
-          xyA: brushDown,
-          xyB: c,
+          xyA: brushDownXY,
+          xyB: xy,
           colour,
         });
         // Move along the line in chunks
-        brushDown = c;
+        brushDownXY = xy;
       },
     },
     STRAIGHT: {
-      onMouseDown(ev) {},
-      onMouseUp(ev) {},
-      onMouseMove(ev) {
-        if (typeof brushDown === 'undefined') return;
-        const c = evToTileXY(ev);
-        // TODO: Where's a good place to redraw the whole canvas?
-        // Can I request an animation frame here?
-        genLineXY(brushDown, c).forEach((xy: TileXY) => {
-          queueTileDraw(xy, colours.gray._400);
+      evDown(xy) {
+        queueTileDraw(xy, data.brushColour());
+      },
+      evUp(xy) {
+        if (!brushDownXY) {
+          return; // Should never happen
+        }
+        const colour = data.brushColour();
+        genLineXY(brushDownXY, xy).forEach(xyLoop => {
+          queueTileDraw(xyLoop, colour);
         });
+        sendMessage({
+          type: 'canvas/drawLine',
+          xyA: brushDownXY,
+          xyB: xy,
+          colour,
+        });
+        cursorXY = [];
+      },
+      evMove(xy) {
+        clearPrevCursor();
+        if (!brushDownXY) {
+          const [x, y] = xy;
+          cursorXY.push({ xy, prevColour: data.tileData[y][x] });
+          queueTileDraw(xy, colours.gray._400);
+          return;
+        }
+        genLineXY(brushDownXY, xy).forEach(xyLoop => {
+          const [x, y] = xyLoop;
+          cursorXY.push({ xy: xyLoop, prevColour: data.tileData[y][x] });
+          queueTileDraw(xyLoop, colours.gray._400);
+        });
+        // Keep the first pixel coloured to show that it's started
+        queueTileDraw(brushDownXY, data.brushColour());
       },
     },
-    CIRCLE: {
-      onMouseDown(ev) {},
-      onMouseUp(ev) {},
-      onMouseMove(ev) {
-        if (typeof brushDown === 'undefined') return;
-        const [aX, aY] = evToTileXY(ev);
-        const [bX, bY] = brushDown;
-        const radius = Math.floor(
-          Math.sqrt(Math.abs(aX - bX) ** 2 + Math.abs(aY - bY) ** 2)
-        );
-        // TODO: Where's a good place to redraw the whole canvas?
-        // Can I request an animation frame here?
-        genCircleXY(brushDown, radius).forEach((xy: TileXY) => {
-          queueTileDraw(xy, colours.gray._400);
-        });
-      },
-    },
+    // CIRCLE: {
+    //   evDown(xy) {},
+    //   evUp(xy) {},
+    //   evMove(xy) {
+    //     if (!brushDownXY) return;
+    //     const [aX, aY] = xy;
+    //     const [bX, bY] = brushDownXY;
+    //     const radius = Math.floor(
+    //       Math.sqrt(Math.abs(aX - bX) ** 2 + Math.abs(aY - bY) ** 2)
+    //     );
+    //     genCircleXY(brushDownXY, radius).forEach(ixy => {
+    //       queueTileDraw(ixy, colours.gray._400);
+    //     });
+    //   },
+    // },
   };
-
-  canvas.addEventListener('mousedown', ev => {
-    evMouse[data.drawMode].onMouseDown(ev);
-  });
-  canvas.addEventListener('mouseup', ev => {
-    evMouse[data.drawMode].onMouseUp(ev);
-  });
-  canvas.addEventListener('mousemove', ev => {
-    evMouse[data.drawMode].onMouseMove(ev);
-  });
 
   // Resizing
   on([data.tileCountX, data.tileCountY, data.tileSizePx], drawEntireCanvas);

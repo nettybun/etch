@@ -7,6 +7,7 @@ import type { DrawModes } from '../data.js';
 const toolChoices: { [k in DrawModes]: h.JSX.Element } = {
   LINE: <p>Freehand line</p>, // <svg/>,
   STRAIGHT: <p>Straight line</p>, // <svg/>,
+  CIRCLE: <p>Circle</p>, // <svg/>,
 };
 
 const Tools = () =>

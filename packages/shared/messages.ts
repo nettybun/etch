@@ -28,13 +28,7 @@ export type ClientClientBroadcast =
   | {
     type: 'canvas/drawCircle' // TODO: Ellipse later
     colour: string
-    xy: number
-    radius: number
-  }
-  | {
-    type: 'canvas/drawSquare' // TODO: Rectangle later
-    colour: string
-    xy: number
+    xyCenter: TileXY
     radius: number
   }
   | {

@@ -8,10 +8,9 @@ let rAFDrawScheduled = false;
 const queueTileDraw = (tile: TileXY, colour: string) => {
   const [x, y] = tile;
   // This happens easily in drawing tools like drawCircle()
-  if (x < 0 || y < 0 || x > data.tileCountX() || y > data.tileCountY()) {
+  if (x < 0 || y < 0 || x >= data.tileCountX() || y >= data.tileCountY()) {
     return;
   }
-  // BUG: ws message: '(intermediate value).tileData[y] is undefined',
   if (data.tileData[y][x] === colour) {
     return;
   }

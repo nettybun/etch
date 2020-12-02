@@ -185,21 +185,62 @@ const TilesCanvas = () => {
         queueTileDraw(brushDownXY, data.brushColour());
       },
     },
-    // CIRCLE: {
-    //   evDown(xy) {},
-    //   evUp(xy) {},
-    //   evMove(xy) {
-    //     if (!brushDownXY) return;
-    //     const [aX, aY] = xy;
-    //     const [bX, bY] = brushDownXY;
-    //     const radius = Math.floor(
-    //       Math.sqrt(Math.abs(aX - bX) ** 2 + Math.abs(aY - bY) ** 2)
-    //     );
-    //     genCircleXY(brushDownXY, radius).forEach(ixy => {
-    //       queueTileDraw(ixy, colours.gray._400);
-    //     });
-    //   },
-    // },
+    CIRCLE: {
+      evDown(xy) {},
+      evUp(xy) {
+        if (!brushDownXY) {
+          return; // Should never happen
+        }
+        // TODO: More reason to factor event handling out to its own function
+        // with local state...
+        const [aX, aY] = xy;
+        const [bX, bY] = brushDownXY;
+        const radius = Math.floor(
+          Math.sqrt(Math.abs(aX - bX) ** 2 + Math.abs(aY - bY) ** 2)
+        );
+        const colour = data.brushColour();
+        genCircleXY(brushDownXY, radius).forEach(xyLoop => {
+          const [x, y] = xyLoop;
+          // TODO: Factor out
+          if (x < 0 || y < 0 || x >= data.tileCountX() || y >= data.tileCountY()) {
+            return;
+          }
+          queueTileDraw(xyLoop, colour);
+        });
+        sendMessage({
+          type: 'canvas/drawCircle',
+          xyCenter: brushDownXY,
+          colour,
+          radius,
+        });
+        cursorXY = [];
+      },
+      evMove(xy) {
+        clearPrevCursor();
+        if (!brushDownXY) {
+          const [x, y] = xy;
+          cursorXY.push({ xy, prevColour: data.tileData[y][x] });
+          queueTileDraw(xy, colours.gray._400);
+          return;
+        }
+        // TODO: More reason to factor event handling out to its own function
+        // with local state...
+        const [aX, aY] = xy;
+        const [bX, bY] = brushDownXY;
+        const radius = Math.floor(
+          Math.sqrt(Math.abs(aX - bX) ** 2 + Math.abs(aY - bY) ** 2)
+        );
+        genCircleXY(brushDownXY, radius).forEach(xyLoop => {
+          const [x, y] = xyLoop;
+          // TODO: Factor out
+          if (x < 0 || y < 0 || x >= data.tileCountX() || y >= data.tileCountY()) {
+            return;
+          }
+          cursorXY.push({ xy: xyLoop, prevColour: data.tileData[y][x] });
+          queueTileDraw(xyLoop, colours.gray._400);
+        });
+      },
+    },
   };
 
   // Resizing

@@ -22,7 +22,7 @@
     "koa": "^2.13.0",
     "koa-send": "^5.0.1",
     "koa-session": "^6.1.0",
-    "nanoid": "^3.1.18",
+    "nanoid": "^3.1.20",
     "ws": "^7.4.0"
   },
   "devDependencies": {
@@ -32,7 +32,7 @@
     "@types/koa-session": "^5.10.3",
     "@types/node": "^14.14.10",
     "@types/ws": "^7.4.0",
-    "esbuild": "^0.8.16",
+    "esbuild": "^0.8.17",
     "nodemon": "^2.0.6",
     "ts-node": "^9.0.0"
   }

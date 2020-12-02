@@ -30,7 +30,7 @@
   "dependencies": {
     "haptic": "^0.8.0",
     "lz-string": "^1.4.4",
-    "nanoid": "^3.1.18",
+    "nanoid": "^3.1.20",
     "styletakeout.macro": "2.0.0"
   },
   "devDependencies": {

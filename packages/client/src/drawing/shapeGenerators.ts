@@ -1,4 +1,4 @@
-import { TileXY } from './types/etch.js';
+import { TileXY } from '../types/etch.js';
 /* eslint-disable prefer-const, no-constant-condition*/
 
 // Bresenham's Line Algorithm

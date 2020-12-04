@@ -1,7 +1,7 @@
-import { s, sample, transaction } from 'haptic/s';
+import { sample, transaction } from 'haptic/s';
 import { data } from './data.js';
-import { queueTileDraw } from './rAF.js';
-import { genCircleXY, genLineXY } from './drawings.js';
+import { applyTileDataValue, queueTileDraw } from './rAF.js';
+import { genCircleXY, genLineXY } from './drawing/shapeGenerators.js';
 
 import type { TileXY } from './types/etch.js';
 import type {
@@ -102,13 +102,15 @@ const handleReceivedMessage = (msg: ReceivableMessage) => {
     }
     case 'canvas/drawLine': {
       genLineXY(msg.xyA, msg.xyB).forEach((xy: TileXY) => {
-        queueTileDraw(xy, msg.colour);
+        applyTileDataValue(xy, msg.colour);
+        queueTileDraw(xy);
       });
       break;
     }
     case 'canvas/drawCircle': {
       genCircleXY(msg.xyCenter, msg.radius).forEach((xy: TileXY) => {
-        queueTileDraw(xy, msg.colour);
+        applyTileDataValue(xy, msg.colour);
+        queueTileDraw(xy);
       });
       break;
     }

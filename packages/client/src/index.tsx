@@ -4,7 +4,7 @@ import { c, styles } from './styles.js';
 import { data } from './data.js';
 import { openWS, closeWS } from './websocket.js';
 
-import { TilesCanvas } from './visual/tiles.js';
+import { BoardCanvas } from './visual/board.js';
 import { Palette } from './visual/palette.js';
 import { ArrowButton } from './visual/arrowbutton.js';
 import { ColourPicker } from './visual/colourpicker.js';
@@ -61,7 +61,7 @@ const Page = () =>
       margin-left: 300px;
     `)}>
       <div>
-        <TilesCanvas/>
+        <BoardCanvas/>
       </div>
       <div>
         <ClickButton text='Open WS' fn={openWS}/>

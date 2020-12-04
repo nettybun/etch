@@ -60,6 +60,9 @@ const closeWS = () => {
   ws = undefined;
 };
 
+// TODO: The most common operation, drawing, will send the command even if none
+// of the underlying pixels changed. Should this be improved? Similar to batch
+// commands, what's the right way to modify the commands on the way out?
 const sendMessage = (msg: SendableMessage) => {
   if (wsIgnoreSend) {
     return;

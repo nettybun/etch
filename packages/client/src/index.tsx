@@ -7,7 +7,6 @@ import { openWS, closeWS } from './websocket.js';
 import { BoardCanvas } from './visual/board.js';
 import { Palette } from './visual/palette.js';
 import { ArrowButton } from './visual/arrowbutton.js';
-import { ColourPicker } from './visual/colourpicker.js';
 import { Tools } from './visual/tools.js';
 
 const {
@@ -51,7 +50,6 @@ const Page = () =>
         <ArrowButton obs={tileSizePx}/>px/tile
       </div>
       <Palette/>
-      {/* <ColourPicker/> */}
       <Tools/>
     </section>
 

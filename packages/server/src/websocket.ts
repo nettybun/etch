@@ -59,7 +59,6 @@ const receiveMessage = (msg: ReceivableMessage, ws: WebSocket) => {
     case 'canvas/resize':
     case 'canvas/drawLine':
     case 'canvas/drawCircle':
-    case 'canvas/drawSquare':
     case 'canvas/drawPixelArea': {
       wss.clients.forEach(currWS => {
         if (currWS !== ws) sendMessage(msg, currWS);

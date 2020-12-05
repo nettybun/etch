@@ -12,13 +12,16 @@
   "scripts": {
     "install:client": "cd packages/client; npm install",
     "install:server": "cd packages/server; npm install",
+    "install": "run-p install:*",
     "build:client": "cd packages/client; npm run build",
     "build:server": "cd packages/server; npm run build",
+    "build": "run-p build:*",
     "start:client": "cd packages/client; npm run start",
     "start:server": "cd packages/server; npm run start",
-    "install": "run-p install:*",
-    "build": "run-p build:*",
-    "start": "run-p start:*"
+    "start": "run-p start:*",
+    "production:client": "cd packages/client; npm run production",
+    "production:server": "cd packages/server; npm run production",
+    "production": "run-p production:*"
   },
   "devDependencies": {
     "@types/node": "^14.14.10",

@@ -50,12 +50,12 @@ const sessLogSlow = debounce((msg) => {
 app.use((ctx, next) => {
   if (ctx.session) {
     const sess = ctx.session;
-    if (sess.created) {
-      sessLogSlow(`Existing session: ${sess.created as string}`);
-    } else {
-      sessLogSlow('Creating new session');
+    if (!sess.name) {
       sess.created = (new Date()).toLocaleString();
       sess.name = genClientId();
+      sessLogSlow(`New session: ${sess.name as string}`);
+    } else {
+      sessLogSlow(`Existing session: ${sess.name as string}`);
     }
   }
   return next();

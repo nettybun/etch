@@ -15,7 +15,8 @@
     "build:ts": "babel src --out-dir serve --extensions \".ts,.tsx\" --source-maps",
     "build:ts:watch": "npm run build:ts -- --watch",
     "build": "run-s build:assets build:ts",
-    "start": "run-s build:assets build:ts:watch "
+    "start": "run-s build:assets build:ts:watch ",
+    "production": "npm run build"
   },
   "snowpack": {
     "installOptions": {

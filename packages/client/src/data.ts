@@ -26,7 +26,7 @@ const data = {
   palette:     s(DEFAULT_PALETTE),
   brushColour: s(DEFAULT_PALETTE[0]),
   // Websocket
-  name:        s(UNKNOWN),
+  names:       s([] as string[]),
   wsMessages:  s([] as string[]),
   // Shapes
   drawMode:    'LINE' as DrawModes,

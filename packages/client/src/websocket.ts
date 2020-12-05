@@ -110,11 +110,23 @@ const handleReceivedMessage = (msg: ReceivableMessage) => {
       break;
     }
     case 'app/userPresence': {
+      // TODO: This implementation is hacky and wrong
+      const names = data.names();
+      if (!names.includes(msg.id)) {
+        names.push(msg.id);
+        data.names(names);
+      }
       wsAddMessage(`  - ${msg.id} marked as "${msg.status}"`);
       break;
     }
     case 'app/setName': {
-      data.name(msg.name);
+      // TODO: This implementation is hacky and wrong
+      const names = data.names();
+      if (!names.includes(msg.name)) {
+        names.unshift(msg.name);
+        data.names(names);
+      }
+      data.names(names);
       break;
     }
     case 'app/setBoardHistory': {

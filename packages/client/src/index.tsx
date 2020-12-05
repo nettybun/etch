@@ -62,7 +62,7 @@ const Page = () =>
         <BoardCanvas/>
       </div>
       <div class={cl.vspace}>
-        <p>Name: {data.name}</p>
+        {() => data.names().map(n => <p>{n}</p>)}
         <div class={cl.hspace}>
           <ClickButton text='Open WS' fn={openWS}/>
           <ClickButton text='Close WS' fn={closeWS}/>

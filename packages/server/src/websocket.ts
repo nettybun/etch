@@ -110,6 +110,8 @@ wss.on('connection', (ws: WebSocket, ctx: Context) => {
     name: session.name as string,
   }, ws);
 
+  // Oh... I don't have a way to tell them everyone else? Because it's a WM
+
   // Tell everyone else about it :)
   wss.clients.forEach(currWS => {
     sendMessage({

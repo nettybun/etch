@@ -2,7 +2,7 @@ import { h } from 'haptic';
 import { css, colours, cl, sizes, decl } from 'styletakeout.macro';
 import { c, styles } from './styles.js';
 import { data } from './data.js';
-import { openWS, closeWS } from './websocket.js';
+import { openWS, closeWS, sendMessage } from './websocket.js';
 
 import { BoardCanvas } from './visual/board.js';
 import { Palette } from './visual/palette.js';
@@ -61,12 +61,20 @@ const Page = () =>
       <div>
         <BoardCanvas/>
       </div>
-      <div>
-        <ClickButton text='Open WS' fn={openWS}/>
-        <ClickButton text='Close WS' fn={closeWS}/>
+      <div class={cl.vspace}>
+        <p>Name: {data.name}</p>
+        <div class={cl.hspace}>
+          <ClickButton text='Open WS' fn={openWS}/>
+          <ClickButton text='Close WS' fn={closeWS}/>
+          <ClickButton text='Clear Board' fn={() => {
+            sendMessage({ type: 'app/clearBoardHistory' });
+          }}/>
+        </div>
         <pre class={c(cl.text.xs, css`
           background: ${colours.gray._100};
+          border: 2px solid ${colours.gray._400};
           padding: 10px;
+          min-width: 500px;
         `)}>
           {() => data.wsMessages().join('\n')}
         </pre>
@@ -76,3 +84,4 @@ const Page = () =>
 
 document.body.appendChild(<Page/>);
 openWS();
+sendMessage({ type: 'app/getBoardHistory' });

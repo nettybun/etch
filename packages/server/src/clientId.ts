@@ -1,3 +1,5 @@
+import { nanoid } from 'nanoid';
+
 const animals = [
   'Alligator',
   'Anteater',
@@ -76,9 +78,9 @@ const animals = [
   'Wombat',
 ];
 
-const genClientId = (hashFn: () => string, name?: string) => {
+const genClientId = (name?: string) => {
   const prefix = name || animals[Math.floor(Math.random() * animals.length)];
-  const hash = hashFn();
+  const hash = nanoid(7);
   return prefix
     ? `${prefix} ${hash}` // Name w/ hash
     : hash; // No name

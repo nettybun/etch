@@ -3,7 +3,7 @@ import { sendMessage } from './websocket.js';
 
 type DrawModes = 'LINE' | 'STRAIGHT' | 'CIRCLE'
 
-const NO_CURSOR = '✖';
+const UNKNOWN = '✖';
 const DEFAULT_TILE_COUNT_X = 30;
 const DEFAULT_TILE_COUNT_Y = 30;
 const DEFAULT_TILE_SIZE_PX = 20;
@@ -15,8 +15,8 @@ const DEFAULT_PALETTE = [
 ];
 
 const data = {
-  hover:       s(NO_CURSOR),
-  click:       s(NO_CURSOR),
+  hover:       s(UNKNOWN),
+  click:       s(UNKNOWN),
   // Tiles
   tileData:    [] as string[][],
   tileCountX:  s(DEFAULT_TILE_COUNT_X),
@@ -26,6 +26,7 @@ const data = {
   palette:     s(DEFAULT_PALETTE),
   brushColour: s(DEFAULT_PALETTE[0]),
   // Websocket
+  name:        s(UNKNOWN),
   wsMessages:  s([] as string[]),
   // Shapes
   drawMode:    'LINE' as DrawModes,

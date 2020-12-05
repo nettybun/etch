@@ -7,21 +7,28 @@ import type { TileXY } from './types/etch.js';
 import type {
   ServerClientBroadcast,
   ClientClientBroadcast,
-  ClientServerDM
+  ClientServerDM,
+  ServerClientDM
 } from '../../shared/messages.js';
 
 // XXX: Shared message
 const HEARTBEAT_MESSAGE = '\uD83D\uDC93';
 
-type ReceivableMessage = ServerClientBroadcast | ClientClientBroadcast | typeof HEARTBEAT_MESSAGE;
-type SendableMessage = ClientClientBroadcast | typeof HEARTBEAT_MESSAGE;
+type ReceivableMessage = ServerClientBroadcast | ClientClientBroadcast | ServerClientDM | typeof HEARTBEAT_MESSAGE;
+type BoardMessage = ClientClientBroadcast | ClientServerDM;
+type SendableMessage = BoardMessage | typeof HEARTBEAT_MESSAGE;
 
-const wsAddMessage = (msg: unknown) => {
-  const value = typeof msg === 'string'
-    ? msg
-    : JSON.stringify(msg, null, 2);
+let offlineMessageQueue: BoardMessage[] = [];
+
+const wsAddMessage = (value: string) => {
   // THIS. THIS IS WHY SIGNALS ARE BAD.
-  data.wsMessages(sample(data.wsMessages).concat(value));
+  // data.wsMessages(sample(data.wsMessages).concat(value));
+  const prev = sample(data.wsMessages);
+  while (prev.length > 20) {
+    prev.shift();
+  }
+  prev.push(value);
+  data.wsMessages(prev);
 };
 
 let ws: WebSocket | undefined = undefined;
@@ -32,6 +39,8 @@ const openWS = () => {
 
   ws.addEventListener('open', ev => {
     wsAddMessage('🔌 WS open');
+    offlineMessageQueue.forEach(m => _sendMessage(m));
+    offlineMessageQueue = [];
   });
 
   ws.addEventListener('close', ev => {
@@ -40,12 +49,12 @@ const openWS = () => {
 
   ws.addEventListener('message', ev => {
     const recv = ev.data as string;
-    wsAddMessage(`⬇ ${recv}`);
+    wsAddMessage(`⬇ ${recv.length > 100 ? `${recv.slice(0, 90)}...` : recv}`);
     try {
       const msg = JSON.parse(recv) as ReceivableMessage;
       handleReceivedMessage(msg);
     } catch (err) {
-      wsAddMessage(`☠ Failed to parse message "${recv}"`);
+      wsAddMessage(`⬇ ❌ ❓ "${recv}"`);
       console.error((err as Error).message);
     }
   });
@@ -60,6 +69,16 @@ const closeWS = () => {
   ws = undefined;
 };
 
+const _sendMessage = (msg: SendableMessage) => {
+  const value = JSON.stringify(msg);
+  wsAddMessage(`⬆ ${value}`);
+  if (!ws) {
+    throw 'Trying to _sendMessage but no websocket';
+  }
+  console.log(value);
+  ws.send(value);
+};
+
 // TODO: The most common operation, drawing, will send the command even if none
 // of the underlying pixels changed. Should this be improved? Similar to batch
 // commands, what's the right way to modify the commands on the way out?
@@ -67,13 +86,13 @@ const sendMessage = (msg: SendableMessage) => {
   if (wsIgnoreSend) {
     return;
   }
-  const value = JSON.stringify(msg);
-  if (!ws) {
-    wsAddMessage(`❌ WS closed; can't send ${value}`);
+  if (!ws || ws.readyState !== ws.OPEN) {
+    if (msg === HEARTBEAT_MESSAGE) return;
+    offlineMessageQueue.push(msg);
+    wsAddMessage('❌ WS closed; queued to send later');
     return;
   }
-  wsAddMessage(`⬆ ${value}`);
-  ws.send(value);
+  _sendMessage(msg);
 };
 
 const handleReceivedMessage = (msg: ReceivableMessage) => {
@@ -92,6 +111,15 @@ const handleReceivedMessage = (msg: ReceivableMessage) => {
     }
     case 'app/userPresence': {
       wsAddMessage(`  - ${msg.id} marked as "${msg.status}"`);
+      break;
+    }
+    case 'app/setName': {
+      data.name(msg.name);
+      break;
+    }
+    case 'app/setBoardHistory': {
+      wsAddMessage(`  - Received ${msg.history.length} history items from the server`);
+      msg.history.forEach(m => { handleReceivedMessage(m); });
       break;
     }
     case 'canvas/resize': {
@@ -127,19 +155,14 @@ const handleReceivedMessage = (msg: ReceivableMessage) => {
 // Only do this once as a side effect (sorry not sorry)
 window.addEventListener('error', (ev: ErrorEvent) => {
   const error = ev.error as Error;
-  if (!ws) {
-    // TODO: Consider implementing a queue for some important messages but not
-    // for things like hover events and throwaway data
-    console.error('Unable to send error to server');
-    throw error;
-  }
   const msg: Extract<ClientServerDM, { type: 'app/error' }> = {
     type: 'app/error',
     name: error.name,
     message: error.message,
     stack: error.stack || '',
   };
-  ws.send(JSON.stringify(msg));
+  sendMessage(msg);
+  throw error;
 });
 
 export { openWS, closeWS, sendMessage };

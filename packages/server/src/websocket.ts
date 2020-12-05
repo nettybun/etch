@@ -26,10 +26,14 @@ type StateWS = {
 };
 
 type ReceivableMessage = ClientClientBroadcast | ClientServerDM;
-type SendableMessage = ServerClientBroadcast | ClientClientBroadcast | ServerClientDM | typeof HEARTBEAT_MESSAGE;
+type BoardMessage = ServerClientBroadcast | ClientClientBroadcast;
+type SendableMessage = BoardMessage | ServerClientDM | typeof HEARTBEAT_MESSAGE;
 
 const knownWS = new WeakMap<WebSocket, StateWS>();
 const logWS = debug('ws');
+
+// XXX: There's currently only one board 🤷
+let boardHistory: BoardMessage[] = [];
 
 // @ts-ignore This isn't published for some reason...
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
@@ -55,13 +59,30 @@ const receiveMessage = (msg: ReceivableMessage, ws: WebSocket) => {
       // TODO: Set into session?
       break;
     }
+    // Send people the entire board
+    case 'app/getBoardHistory': {
+      sendMessage({
+        type: 'app/setBoardHistory',
+        history: boardHistory,
+      }, ws);
+      break;
+    }
+    case 'app/clearBoardHistory': {
+      boardHistory = [];
+      wss.clients.forEach(currWS => {
+        sendMessage({ type: 'app/setBoardHistory', history: [] }, currWS);
+      });
+      break;
+    }
     // Broadcast messages to all other clients
     case 'canvas/resize':
     case 'canvas/drawLine':
     case 'canvas/drawCircle':
     case 'canvas/drawPixelArea': {
+      boardHistory.push(msg);
       wss.clients.forEach(currWS => {
-        if (currWS !== ws) sendMessage(msg, currWS);
+        if (currWS === ws) return;
+        sendMessage(msg, currWS);
       });
       break;
     }
@@ -80,8 +101,23 @@ wss.on('connection', (ws: WebSocket, ctx: Context) => {
 
   if (wss.clients.size === 1) {
     logWS('First connection, starting broadcast loop');
-    Heartbeat.start();
+    heartbeat.start();
   }
+
+  // Give them a name :)
+  sendMessage({
+    type: 'app/setName',
+    name: session.name as string,
+  }, ws);
+
+  // Tell everyone else about it :)
+  wss.clients.forEach(currWS => {
+    sendMessage({
+      type: 'app/userPresence',
+      id: knownWS.get(ws)!.session.name as string,
+      status: 'online',
+    }, currWS);
+  });
 
   ws.on('message', (message: WebSocket.Data) => {
     const msg = JSON.parse(message.toString()) as unknown;
@@ -104,8 +140,17 @@ wss.on('connection', (ws: WebSocket, ctx: Context) => {
     // There's a chance this runs _before_ the internal ws.on('close') in wss
     if (wss.clients.size === (wss.clients.has(ws) ? 1 : 0)) {
       logWS('Last client disconnected, ending broadcast loop');
-      Heartbeat.stop();
+      heartbeat.stop();
+      return;
     }
+    wss.clients.delete(ws);
+    wss.clients.forEach(currWS => {
+      sendMessage({
+        type: 'app/userPresence',
+        id: knownWS.get(ws)!.session.name as string,
+        status: 'away',
+      }, currWS);
+    });
   });
 
   logWS(`New websocket: ${created} at IP ${ctx.ip}`);
@@ -113,7 +158,7 @@ wss.on('connection', (ws: WebSocket, ctx: Context) => {
 });
 
 // Send 💓 to all clients to know if they're online
-const Heartbeat = {
+const heartbeat = {
   broadcastInterval: {} as NodeJS.Timeout,
   start() {
     clearTimeout(this.broadcastInterval);

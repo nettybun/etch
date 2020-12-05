@@ -7,6 +7,7 @@ import debug from 'debug';
 import session from 'koa-session';
 import send from 'koa-send';
 
+import { genClientId } from './clientId.js';
 import { wss } from './websocket.js';
 import { debounce } from './util.js';
 import { CLIENT_SERVE_ROOT, PORT } from './config.js';
@@ -48,11 +49,13 @@ const sessLogSlow = debounce((msg) => {
 
 app.use((ctx, next) => {
   if (ctx.session) {
-    if (ctx.session.created) {
-      sessLogSlow(`Existing session: ${ctx.session.created as string}`);
+    const sess = ctx.session;
+    if (sess.created) {
+      sessLogSlow(`Existing session: ${sess.created as string}`);
     } else {
       sessLogSlow('Creating new session');
-      ctx.session.created = (new Date()).toLocaleString();
+      sess.created = (new Date()).toLocaleString();
+      sess.name = genClientId();
     }
   }
   return next();
@@ -78,8 +81,7 @@ app.use(async (ctx, next) => {
 // If a request has a websocket bind it to their session and add it to the pool
 app.use(async (ctx, next) => {
   if (ctx.ws) {
-    const ws = await ctx.ws();
-    ws.send(`Hello! ${ctx.request.ip}`);
+    await ctx.ws();
   }
   await next();
 });
@@ -91,6 +93,7 @@ app.use(async (ctx) => {
   });
 });
 
+// TODO: Interesting that this lists Docker bridge interfaces. Are those bound?
 const urls
   = Object.values(os.networkInterfaces() as { [k: string ]: os.NetworkInterfaceInfo[] })
     .reduce((every, i) => [...every, ...i], [])

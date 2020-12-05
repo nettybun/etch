@@ -54,11 +54,23 @@ export type ClientServerDM =
     message: string
     stack: string
   }
+  | {
+    type: 'app/getBoardHistory'
+  }
+  | {
+    type: 'app/clearBoardHistory'
+  }
 
 export type ServerClientDM =
   | {
-    type: 'app/crdtPush'
-    // ??
+    type: 'app/setName'
+    name: string
+  }
+  // TODO: Oh noooo this is a messages that's not actually only a DM because I
+  // end up broadcasting it to all clients :(
+  | {
+    type: 'app/setBoardHistory'
+    history: Array<ServerClientBroadcast | ClientClientBroadcast>
   }
 
 // Better to just use HTTP? Feel like I'm reinventing the wheel

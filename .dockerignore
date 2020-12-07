@@ -1,5 +1,3 @@
-# Ignore everything
 **
-
 !/packages/client/serve/**
 !/packages/server/serve/**

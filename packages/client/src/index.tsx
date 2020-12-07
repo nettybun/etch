@@ -68,6 +68,8 @@ const Page = () =>
           <ClickButton text='Close WS' fn={closeWS}/>
           <ClickButton text='Clear Board' fn={() => {
             sendMessage({ type: 'app/clearBoardHistory' });
+            // Hacks 😞
+            setTimeout(() => window.location.reload(), 500);
           }}/>
         </div>
         <pre class={c(cl.text.xs, css`
